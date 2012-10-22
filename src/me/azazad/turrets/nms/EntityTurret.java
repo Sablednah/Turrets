@@ -21,7 +21,6 @@ import net.minecraft.server.EntityThrownExpBottle;
 import net.minecraft.server.ItemMonsterEgg;
 import net.minecraft.server.Vec3D;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
