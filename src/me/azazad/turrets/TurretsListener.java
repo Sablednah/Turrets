@@ -1,12 +1,10 @@
 package me.azazad.turrets;
 
-import me.azazad.turrets.nms.EntityMinecartForTurret;
 import me.azazad.turrets.nms.EntityTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.bukkit.util.PlayerCommandSender;
 import net.minecraft.server.EntityMinecart;
-import net.minecraft.server.EntityPlayer;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,7 +12,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.craftbukkit.entity.CraftMinecart;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Minecart;
@@ -27,7 +24,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -153,32 +149,6 @@ public class TurretsListener implements Listener{
     	}
     }
     
-    
-    //attempt at handling when a player tries to leave a turret
-    //they no longer enter the vehicle, with EntityTurret @Override c(*), so no exit either
-    @EventHandler
-    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-    	Player player = event.getPlayer();
-    	player.sendMessage("In click event");
-    	Entity entityClicked = event.getRightClicked();
-    	if(entityClicked instanceof Minecart) {
-    		player.sendMessage("Clicked a minecart");
-    		Minecart minecart = (Minecart)entityClicked;
-            EntityMinecartForTurret nmsMinecart = (EntityMinecartForTurret)((CraftMinecart)minecart).getHandle();
-            if(nmsMinecart instanceof EntityTurret){
-	    		player.sendMessage("Clicked a turret");
-	    		EntityTurret entityTurret = (EntityTurret) nmsMinecart;
-	    		if(entityTurret.getShooter()!=null && entityTurret.getShooter().getPlayer().equals(player)) {
-	    			player.sendMessage("You are the shooter, attempting detach.");
-	    			EntityPlayer entityPlayer =  ((CraftPlayer)player).getHandle();
-	    			entityPlayer.setPassengerOf(entityTurret);
-	    			entityPlayer.setPassengerOf(entityTurret);
-	    			entityTurret.detachShooter();
-	    		}
-    		}
-    	}
-    }
-    
     @EventHandler
     public void onVehicleEnter(VehicleEnterEvent event) {
     	if(event.getVehicle().getType().equals(EntityType.MINECART)) {
@@ -186,18 +156,10 @@ public class TurretsListener implements Listener{
     		if ((event.getEntered() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
     			Player rider = (Player) event.getEntered();
     			Turret turret = plugin.getTurret(turretLoc);
-    			if(turret.getEntity().getShooter()==null) {
-    				EntityPlayer entityPlayer = ((CraftPlayer)event.getEntered()).getHandle();
-	    			TurretShooter shooter = new TurretShooter(rider);
-	    			turret.getEntity().attachShooter(shooter);
-	    			entityPlayer.mount(turret.getEntity());
-	    			turret.getEntity().setPitch(rider.getLocation().getPitch());
-					turret.getEntity().setYaw(rider.getLocation().getYaw());
-    			} else if(turret.getEntity().getShooter().getPlayer().equals((Player)event.getEntered())) {
-    				EntityPlayer entityPlayer = ((CraftPlayer)event.getEntered()).getHandle();
-    				entityPlayer.mount(turret.getEntity());
-	    			turret.getEntity().detachShooter();
-    			}
+    			TurretShooter shooter = new TurretShooter(rider);
+    			turret.getEntity().attachShooter(shooter);
+    			turret.getEntity().setPitch(rider.getLocation().getPitch());
+				turret.getEntity().setYaw(rider.getLocation().getYaw());
     		}
     	}
     }

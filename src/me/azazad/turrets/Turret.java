@@ -13,7 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class Turret{
-	
+	public boolean TESTING_GITHUB;
 	private boolean usesAmmoBox;
     private final BlockLocation location;
     private String ownerName;
