@@ -35,7 +35,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
-    public static final Material POST_MATERIAL = Material.FENCE;
+    //public static final Material POST_MATERIAL = Material.FENCE;
+    public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
     
     public static final String PERM_TURRET_CREATE = "turrets.create";
@@ -96,6 +97,12 @@ public class TurretsPlugin extends JavaPlugin{
         
         //register commands
         getCommand("turrets").setExecutor(new TurretsCommand(this));
+        
+        //initialize post_material types
+        this.POST_MATERIALS.add(Material.FENCE);
+        this.POST_MATERIALS.add(Material.IRON_FENCE);
+        this.POST_MATERIALS.add(Material.NETHER_FENCE);
+        
         
         //load turrets
         try{

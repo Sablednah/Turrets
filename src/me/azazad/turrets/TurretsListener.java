@@ -47,7 +47,7 @@ public class TurretsListener implements Listener{
     			if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
     				Player player = event.getPlayer();
     	    		Block clickedBlock = event.getClickedBlock();
-	    			if (clickedBlock.getType() == TurretsPlugin.POST_MATERIAL) {
+	    			if (TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					player.sendMessage("Next click a chest to link.");
@@ -73,7 +73,7 @@ public class TurretsListener implements Listener{
 	    		if (event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 	    			Player player = event.getPlayer();
     	    		Block clickedBlock = event.getClickedBlock();
-    	    		if (clickedBlock.getType() == TurretsPlugin.POST_MATERIAL) {
+    	    		if (TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					player.sendMessage("Next click a chest to unlink.");
@@ -99,7 +99,7 @@ public class TurretsListener implements Listener{
 	    		if(event.getAction() == Action.LEFT_CLICK_BLOCK) {
 	    			Player player = event.getPlayer();
     	    		Block clickedBlock = event.getClickedBlock();
-	    			if(clickedBlock.getType() == TurretsPlugin.POST_MATERIAL) {
+	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					player.sendMessage("Turret ammo modified.");
@@ -117,7 +117,7 @@ public class TurretsListener implements Listener{
             ItemStack itemInHand = event.getItem();
             Player player = event.getPlayer();
             
-            if(clickedBlock.getType() == TurretsPlugin.POST_MATERIAL && itemInHand.getType() == Material.MINECART){
+            if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType()) && itemInHand.getType() == Material.MINECART){
                 boolean hasPermission = plugin.getPermissionsProvider().has(player,TurretsPlugin.PERM_TURRET_CREATE);
                 if(!hasPermission){
                     plugin.notifyPlayer(player,TurretsMessage.NO_CREATE_PERM);
@@ -136,7 +136,7 @@ public class TurretsListener implements Listener{
                     plugin.addTurret(turret);
                     plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
                 }else{
-                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
+                    //plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
                 }
             }
         }
@@ -236,7 +236,7 @@ public class TurretsListener implements Listener{
         Material material = block.getType();
         
         //Turret destruction
-        if(material == TurretsPlugin.POST_MATERIAL){
+        if(TurretsPlugin.POST_MATERIALS.contains(material)){
             BlockLocation postLocation = BlockLocation.fromLocation(block.getLocation());
             Turret turret = plugin.getTurret(postLocation);
             
