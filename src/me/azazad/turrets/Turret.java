@@ -36,10 +36,6 @@ public class Turret{
         initializeUpgradeTier();
     }
     
-    public TurretsPlugin getPlugin() {
-    	return this.plugin;
-    }
-    
     public BlockLocation getLocation(){
         return location;
     }

@@ -37,7 +37,6 @@ public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
     public static final Material POST_MATERIAL = Material.FENCE;
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
-    public Map<Player,TurretShooter> shooterList = new HashMap<Player,TurretShooter>();
     
     public static final String PERM_TURRET_CREATE = "turrets.create";
     public static final String PERM_TURRET_DESTROY = "turrets.destroy";

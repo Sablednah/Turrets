@@ -24,9 +24,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
@@ -152,79 +150,31 @@ public class TurretsListener implements Listener{
     }
     
     @EventHandler
-    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-    	Player player = event.getPlayer();
-    	player.sendMessage("-In PlayerInteractEntity event");
-    	Entity entity = event.getRightClicked();
-    	 if(entity instanceof Minecart){
-    		 player.sendMessage("--Is a minecart");
-             Minecart minecart = (Minecart)entity;
-             EntityMinecart nmsMinecart = ((CraftMinecart)minecart).getHandle();
-             
-             if(nmsMinecart instanceof EntityTurret){
-            	 player.sendMessage("---Is a turret");
-                 EntityTurret nmsTurret = (EntityTurret)nmsMinecart;
-                 if(nmsTurret.getShooter()==null) {
-                	 player.sendMessage("----No shooter");
-                	 TurretShooter shooter = new TurretShooter(player);
-                	 nmsTurret.attachShooter(shooter);
-                	 event.setCancelled(true);
-                 }
-                 else {
-                	 player.sendMessage("----Shooter exists");
-                	 if(nmsTurret.getShooter().getPlayer().equals(event.getPlayer())) {
-                		 player.sendMessage("-----Shooter is you");
-                		 nmsTurret.detachShooter();
-                	 }
-                 }
-             }
-    	 }
-    }
-    
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-    	if(this.plugin.shooterList.containsKey(event.getPlayer())) {
-    		Player player;
-    		TurretShooter shooter = null;
-    		for (Player p : this.plugin.shooterList.keySet()) {
-    			if(p.equals(event.getPlayer())) {
-    				player = p;
-    				shooter = this.plugin.shooterList.get(p);
-    			}
+    public void onVehicleEnter(VehicleEnterEvent event) {
+    	if(event.getVehicle().getType().equals(EntityType.MINECART)) {
+    		BlockLocation turretLoc = BlockLocation.fromLocation(event.getVehicle().getLocation().add(0,-1,0));
+    		if ((event.getEntered() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
+    			Player rider = (Player) event.getEntered();
+    			Turret turret = plugin.getTurret(turretLoc);
+    			TurretShooter shooter = new TurretShooter(rider);
+    			turret.getEntity().attachShooter(shooter);
+    			turret.getEntity().setPitch(rider.getLocation().getPitch());
+				turret.getEntity().setYaw(rider.getLocation().getYaw());
     		}
-    		event.setCancelled(true);
-    		event.getPlayer().getLocation().setX(shooter.getStartX());
-    		event.getPlayer().getLocation().setY(shooter.getStartY());
-    		event.getPlayer().getLocation().setZ(shooter.getStartZ());
     	}
     }
-    
-//    @EventHandler
-//    public void onVehicleEnter(VehicleEnterEvent event) {
-//    	if(event.getVehicle().getType().equals(EntityType.MINECART)) {
-//    		BlockLocation turretLoc = BlockLocation.fromLocation(event.getVehicle().getLocation().add(0,-1,0));
-//    		if ((event.getEntered() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
-//    			Player rider = (Player) event.getEntered();
-//    			Turret turret = plugin.getTurret(turretLoc);
-//    			TurretShooter shooter = new TurretShooter(rider);
-//    			turret.getEntity().attachShooter(shooter);
-//    			turret.getEntity().setPitch(rider.getLocation().getPitch());
-//				turret.getEntity().setYaw(rider.getLocation().getYaw());
-//    		}
-//    	}
-//    }
-//
-//    @EventHandler
-//    public void onVehicleExit(VehicleExitEvent event) {
-//    	if(event.getVehicle().getType().equals(EntityType.MINECART)) {
-//    		BlockLocation turretLoc = BlockLocation.fromLocation(event.getVehicle().getLocation().add(0,-1,0));
-//    		if ((event.getExited() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
-//    			//Player rider = (Player) event.getExited();
-//    			Turret turret = plugin.getTurret(turretLoc);
-//    			turret.getEntity().detachShooter();
-//    		}
-//    	}
-//    }
+
+    @EventHandler
+    public void onVehicleExit(VehicleExitEvent event) {
+    	if(event.getVehicle().getType().equals(EntityType.MINECART)) {
+    		BlockLocation turretLoc = BlockLocation.fromLocation(event.getVehicle().getLocation().add(0,-1,0));
+    		if ((event.getExited() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
+    			//Player rider = (Player) event.getExited();
+    			Turret turret = plugin.getTurret(turretLoc);
+    			turret.getEntity().detachShooter();
+    		}
+    	}
+    }
     
     @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onVehicleDestroy(VehicleDestroyEvent event){
