@@ -13,6 +13,7 @@ import me.azazad.util.RandomUtils;
 import net.minecraft.server.DamageSource;
 import net.minecraft.server.EntityArrow;
 import net.minecraft.server.EntityEgg;
+import net.minecraft.server.EntityHuman;
 import net.minecraft.server.EntityItem;
 import net.minecraft.server.EntityPotion;
 import net.minecraft.server.EntitySmallFireball;
@@ -85,6 +86,11 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         }else{
             return super.damageEntity(damageSource,damage);
         }
+    }
+    
+    @Override
+    public boolean c(EntityHuman entityhuman) {
+    	return true;
     }
     
     @Override
@@ -452,10 +458,15 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     
     public void attachShooter(TurretShooter shooter) {
     	this.shooter = shooter;
+    	shooter.getPlayer().getLocation().setX(this.pivotX);
+    	shooter.getPlayer().getLocation().setY(this.pivotY + 1);
+    	shooter.getPlayer().getLocation().setZ(this.pivotZ);
+    	this.getTurret().getPlugin().shooterList.put(shooter.getPlayer(), shooter);
     	setPlayerControl(true);
     }
     
     public void detachShooter() {
+    	this.getTurret().getPlugin().shooterList.remove(shooter.getPlayer());
     	this.shooter = null;
     	setPlayerControl(false);
     }
