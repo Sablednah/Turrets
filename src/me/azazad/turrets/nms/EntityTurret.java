@@ -1,5 +1,6 @@
 package me.azazad.turrets.nms;
 
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
@@ -46,6 +48,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     private Entity target;
     private int firingCooldown = 0;
     private int targetSearchCooldown = 0;
+    private EntityShooter entityShooter;
     
     //private int firingInterval = 40;
     private int targetSearchInterval = 10;
@@ -65,6 +68,13 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         this.pivotY = pivotY;
         this.pivotZ = pivotZ;
         setPosition(this.pivotX,this.pivotY,this.pivotZ);
+    }
+    
+    public void createBukkitShooterEntity(Player player) {
+    	org.bukkit.craftbukkit.entity.CraftPlayer craftPlayer;
+        craftPlayer = (org.bukkit.craftbukkit.entity.CraftPlayer) player;
+        this.entityShooter = new EntityShooter(Bukkit.getServer(),this.bukkitWorld,player.getName(),craftPlayer.getHandle().itemInWorldManager,this,this.pivotX,this.pivotY,this.pivotZ);
+        this.entityShooter.U();
     }
     
     public Turret getTurret(){
@@ -451,8 +461,10 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     }
     
     public void attachShooter(TurretShooter shooter) {
+    	createBukkitShooterEntity(shooter.getPlayer());
     	this.shooter = shooter;
     	setPlayerControl(true);
+    	
     }
     
     public void detachShooter() {
