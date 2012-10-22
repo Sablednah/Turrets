@@ -13,15 +13,17 @@ import me.azazad.util.RandomUtils;
 import net.minecraft.server.DamageSource;
 import net.minecraft.server.EntityArrow;
 import net.minecraft.server.EntityEgg;
+import net.minecraft.server.EntityHuman;
 import net.minecraft.server.EntityItem;
+import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.EntityPotion;
 import net.minecraft.server.EntitySmallFireball;
 import net.minecraft.server.EntitySnowball;
 import net.minecraft.server.EntityThrownExpBottle;
+import net.minecraft.server.Item;
 import net.minecraft.server.ItemMonsterEgg;
 import net.minecraft.server.Vec3D;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -31,11 +33,12 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
 
-public class EntityTurret extends net.minecraft.server.EntityMinecart{
+public class EntityTurret extends EntityMinecartForTurret{
     private static final double REBOUND = 0.1;
     private static final double ITEM_SPAWN_DISTANCE = 1.2;
     
@@ -46,6 +49,8 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     private Entity target;
     private int firingCooldown = 0;
     private int targetSearchCooldown = 0;
+    private float shooterLastPitch;
+    private float shooterLastYaw;
     
     //private int firingInterval = 40;
     private int targetSearchInterval = 10;
@@ -71,6 +76,11 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         return turret;
     }
     
+    public void setPassenger(Player p){
+    	EntityPlayer BEpassenger = ((org.bukkit.craftbukkit.entity.CraftPlayer)p).getHandle();
+    	((EntityMinecartForTurret)this).getBukkitEntity().setPassenger(BEpassenger.getBukkitEntity());
+    }
+    
     public boolean damageEntity(DamageSource damageSource,int damage){
         net.minecraft.server.Entity nmsDamager = damageSource.getEntity();
         
@@ -85,6 +95,31 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         }else{
             return super.damageEntity(damageSource,damage);
         }
+    }
+    
+    @Override
+    public boolean c(EntityHuman entityhuman) {
+    	if (this.type == 0) {
+            if (this.passenger != null && this.passenger instanceof EntityHuman && this.passenger != entityhuman) {
+                return true;
+            }
+
+            if (!this.world.isStatic) {
+            	if (this.getShooter()==null) {
+            		entityhuman.mount(this);
+            	} else {
+            		EntityPlayer entityPlayer = ((org.bukkit.craftbukkit.entity.CraftPlayer)(this.getShooter().getPlayer())).getHandle();
+            		if(entityhuman instanceof EntityPlayer) {
+            			if(((EntityPlayer)(entityhuman)).equals(entityPlayer)) {
+            				entityhuman.mount(this);
+            				entityPlayer.getBukkitEntity().getPlayer().sendMessage("WOOP!");
+            			}
+            		}
+            	}
+            }
+    	}
+
+        return true;	
     }
     
     @Override
@@ -186,6 +221,8 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 	        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
 	        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
 	        	lookAt(plookX,plookY,plookZ);
+	        	this.getShooter().getPlayer().getLocation().setPitch(this.shooterLastPitch);
+	        	this.getShooter().getPlayer().getLocation().setYaw(this.shooterLastYaw);
 	        	turretLookMatchShooterCD = 10;
         	} else turretLookMatchShooterCD--;
         }
@@ -452,6 +489,8 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     
     public void attachShooter(TurretShooter shooter) {
     	this.shooter = shooter;
+    	this.shooterLastPitch = shooter.getPlayer().getLocation().getPitch();
+    	this.shooterLastYaw = shooter.getPlayer().getLocation().getYaw();
     	setPlayerControl(true);
     }
     
