@@ -38,7 +38,7 @@ public class TurretsListener implements Listener{
     }
     
     @SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.MONITOR,ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event){
         //Turret creation
     	if(plugin.getPlayerCommander(event.getPlayer())!=null) {
@@ -50,9 +50,14 @@ public class TurretsListener implements Listener{
 	    			if (TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
-	    					player.sendMessage("Next click a chest to link.");
-	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
-	    					pcs.setTurretCreationStep(2);
+	    					Turret turret = plugin.getTurret(postLocation);
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.allowAllToAddAmmoBox) {
+		    					player.sendMessage("Next click a chest to link.");
+		    					pcs.setTurretSelected(turret);
+		    					pcs.setTurretCreationStep(2);
+	    					} else {
+	    						player.sendMessage("You can't add ammo to someone else's turret!");
+	    					}
 	    				}
 	    			}
 	    		}
@@ -104,10 +109,12 @@ public class TurretsListener implements Listener{
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					player.sendMessage("Turret ammo modified.");
 	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
+	    					Turret turret = pcs.getTurretSelected();
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToChangeAmmo)) {
+		    					turret.setUsesAmmoBox(!pcs.getUnlimAmmoCommanded());
+		    					plugin.playerCommanders.remove(pcs);
+	    					}
 	    				}
-	    				Turret turret = pcs.getTurretSelected();
-	    				turret.setUsesAmmoBox(!pcs.getUnlimAmmoCommanded());
-	    				plugin.playerCommanders.remove(pcs);
 	    			}
 	    		}
 	    	}
@@ -118,33 +125,29 @@ public class TurretsListener implements Listener{
             Player player = event.getPlayer();
             
             if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType()) && itemInHand.getType() == Material.MINECART){
-                boolean hasPermission = plugin.getPermissionsProvider().has(player,TurretsPlugin.PERM_TURRET_CREATE);
-                if(!hasPermission){
-                    plugin.notifyPlayer(player,TurretsMessage.NO_CREATE_PERM);
-                    return;
-                }
-                
-                BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
-                if(plugin.canBuildTurret(postLocation)){
-                    Turret turret = new Turret(postLocation,player,plugin);
-                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
-                    else {
-                    	itemInHand.setAmount(itemInHand.getAmount()-1);
-                    	player.setItemInHand(itemInHand);
-                    }
-                    player.updateInventory();
-                    plugin.addTurret(turret);
-                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
-                }else{
-                    //plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
-                }
+                if(player.hasPermission("turrets.addturret")) {
+	                BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
+	                if(plugin.canBuildTurret(postLocation)){
+	                    Turret turret = new Turret(postLocation,player,plugin);
+	                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
+	                    else {
+	                    	itemInHand.setAmount(itemInHand.getAmount()-1);
+	                    	player.setItemInHand(itemInHand);
+	                    }
+	                    player.updateInventory();
+	                    plugin.addTurret(turret);
+	                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
+	                }else{
+	                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
+	                }
+                } else player.sendMessage("You don't have permissions to create a turret!");
             }
         }
     }
     
     @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerAnimation(PlayerAnimationEvent event) {
-		if (plugin.getTurret(event.getPlayer())!=null) {//if player is shooter of turret
+    	if (plugin.getTurret(event.getPlayer())!=null) {//if player is shooter of turret
 			plugin.getTurret(event.getPlayer()).getEntity().getShooter().setClickedFlag(true);
     	}
     }
@@ -155,11 +158,15 @@ public class TurretsListener implements Listener{
     		BlockLocation turretLoc = BlockLocation.fromLocation(event.getVehicle().getLocation().add(0,-1,0));
     		if ((event.getEntered() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
     			Player rider = (Player) event.getEntered();
-    			Turret turret = plugin.getTurret(turretLoc);
-    			TurretShooter shooter = new TurretShooter(rider);
-    			turret.getEntity().attachShooter(shooter);
-    			turret.getEntity().setPitch(rider.getLocation().getPitch());
-				turret.getEntity().setYaw(rider.getLocation().getYaw());
+    			if(rider.hasPermission("turrets.manturret")) {
+	    			Turret turret = plugin.getTurret(turretLoc);
+	    			if (rider.isOp() || turret.getOwnerName().equals(rider.getName()) || plugin.allowAllToMan) {
+		    			TurretShooter shooter = new TurretShooter(rider);
+		    			turret.getEntity().attachShooter(shooter);
+		    			turret.getEntity().setPitch(rider.getLocation().getPitch());
+						turret.getEntity().setYaw(rider.getLocation().getYaw());
+	    			}
+    			}
     		}
     	}
     }
@@ -195,16 +202,17 @@ public class TurretsListener implements Listener{
                     if(attacker instanceof Player){
                         Player player = (Player)attacker;
                         
-                        boolean hasPermission = plugin.getPermissionsProvider().has(player,TurretsPlugin.PERM_TURRET_DESTROY);
-                        if(!hasPermission){
-                            plugin.notifyPlayer(player,TurretsMessage.NO_DESTROY_PERM);
-                            event.setCancelled(true);
-                            return;
+                        if(player.hasPermission("turrets.removeturret")) {
+	                        if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.allowAllToDestroy) {
+		                        plugin.removeTurret(turret);
+		                        plugin.notifyPlayer(player,TurretsMessage.TURRET_DESTROYED);
+		                        return;
+	                        }
                         }
+                        plugin.notifyPlayer(player,TurretsMessage.NO_DESTROY_PERM);
+                        event.setCancelled(true);
+                        return;
                         
-                        plugin.removeTurret(turret);
-                        
-                        plugin.notifyPlayer(player,TurretsMessage.TURRET_DESTROYED);
                     }else{
                         plugin.removeTurret(turret);
                     }
@@ -241,8 +249,7 @@ public class TurretsListener implements Listener{
             Turret turret = plugin.getTurret(postLocation);
             
             if(turret != null){
-                boolean hasPermission = plugin.getPermissionsProvider().has(player,TurretsPlugin.PERM_TURRET_DESTROY);
-                if(!hasPermission){
+                if(!player.hasPermission("turrets.destroyturret")) {
                     plugin.notifyPlayer(player,TurretsMessage.NO_DESTROY_PERM);
                     event.setCancelled(true);
                     return;
@@ -273,23 +280,21 @@ public class TurretsListener implements Listener{
         			}
         		}
         	}
+        } else {
+        	BlockLocation postLocation = BlockLocation.fromLocation(block.getLocation().add(0,1,0));
+            Turret turret = plugin.getTurret(postLocation);
+            if(turret!=null) {
+            	if(player.hasPermission("turret.upgrade")) {
+            		turret.updateUpgradeTier(Material.AIR);
+            	} else {
+            		player.sendMessage("You don't have permission to upgrade turrets!");
+            		event.setCancelled(true);
+            	}
+            }
         }
     }
     
-    @EventHandler(priority = EventPriority.MONITOR,ignoreCancelled = true)
-    public void afterBlockBreak(BlockBreakEvent event){
-        Block block = event.getBlock();
-        
-        //Change upgrade tiers
-        BlockLocation postLocation = BlockLocation.fromLocation(block.getLocation().add(0,1,0));
-        Turret turret = plugin.getTurret(postLocation);
-        
-        if(turret != null){
-            turret.updateUpgradeTier(Material.AIR);
-        }
-    }
-    
-    @EventHandler(priority = EventPriority.MONITOR,ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event){
         Block block = event.getBlock();
         Player player = event.getPlayer();
@@ -314,15 +319,20 @@ public class TurretsListener implements Listener{
         Turret turret = plugin.getTurret(postLocation);
         
         if(turret != null){
-            UpgradeTier prevTier = turret.getUpgradeTier();
-            UpgradeTier newTier = turret.updateUpgradeTier();
-            
-            if(newTier != prevTier){
-                plugin.notifyPlayer(player,TurretsMessage.TURRET_UPGRADED);
-                plugin.notifyPlayer(player,"Firing interval (lower is faster): "+ChatColor.AQUA+newTier.getFiringInterval());
-                plugin.notifyPlayer(player,"Range: "+ChatColor.AQUA+newTier.getRange());
-                plugin.notifyPlayer(player,"Accuracy (lower is more accurate): "+ChatColor.AQUA+newTier.getAccuracy());
-            }
+        	if(player.hasPermission("turrets.upgrade")) {
+	            UpgradeTier prevTier = turret.getUpgradeTier();
+	            UpgradeTier newTier = turret.updateUpgradeTier();
+	            
+	            if(newTier != prevTier){
+	                plugin.notifyPlayer(player,TurretsMessage.TURRET_UPGRADED);
+	                plugin.notifyPlayer(player,"Firing interval (lower is faster): "+ChatColor.AQUA+newTier.getFiringInterval());
+	                plugin.notifyPlayer(player,"Range: "+ChatColor.AQUA+newTier.getRange());
+	                plugin.notifyPlayer(player,"Accuracy (lower is more accurate): "+ChatColor.AQUA+newTier.getAccuracy());
+	            }
+        	} else {
+        		player.sendMessage("You don't have permissions to upgrade turrets!");
+        		event.setCancelled(true);
+        	}
         }
     }
 }

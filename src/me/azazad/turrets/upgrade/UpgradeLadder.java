@@ -15,6 +15,7 @@ public class UpgradeLadder{
     private static final String RANGE_PATH = "range";
     private static final String ACCURACY_PATH = "accuracy";
     
+    
     private final Map<Material,UpgradeTier> upgradeTiers = new EnumMap<Material,UpgradeTier>(Material.class);
     private UpgradeTier defaultUpgradeTier;
     

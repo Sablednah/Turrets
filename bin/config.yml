@@ -1,5 +1,16 @@
 ## Default Turrets Configuration
 
+# activeOnCreate: True means new turrets will be active by default.
+# allowAllToMan: True allows all players (with permissions) to man anyone's turrets.
+# allowAllToChangeAmmo: True allows all players (with permissions) to change the ammo type of anyone's turrets.
+# allowAllToAddAmmoBox: True allows all players (with permissions) to add/remove ammo boxes from anyone's turrets.
+# allowAllToDestroy: True allows all players (with permissions) to destroy anyone's turrets.
+activeOnCreate: true
+allowAllToMan: false
+allowAllToChangeAmmo: false
+allowAllToAddAmmoBox: false
+allowAllToDestroy: false
+
 # Upgrade Tiers
 #
 # Names of tiers must be placeable blocks, except for "default" (chosen if the block under a turret's post matches none of the rest)

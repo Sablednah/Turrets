@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import me.azazad.bukkit.util.BlockLocation;
@@ -26,6 +27,7 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -43,6 +45,11 @@ public class TurretsPlugin extends JavaPlugin{
     public static final String PERM_TURRET_DESTROY = "turrets.destroy";
     public static final String PERM_ADMIN = "turrets.admin";
     public static Logger globalLogger;
+    public boolean activeOnCreate = true;
+    public boolean allowAllToMan = false;
+    public boolean allowAllToChangeAmmo = false;
+    public boolean allowAllToAddAmmoBox = false;
+    public boolean allowAllToDestroy = false;
     
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
@@ -76,6 +83,7 @@ public class TurretsPlugin extends JavaPlugin{
         saveDefaultConfig();
         Configuration config = getConfig();
         upgradeLadder.loadUpgradeTiers(config,logger);
+        loadConfigOptions(config,logger);
         logger.info("Upgrade tiers loaded.");
         
         //load providers
@@ -116,7 +124,20 @@ public class TurretsPlugin extends JavaPlugin{
         
     }
     
-    @Override
+    private void loadConfigOptions(Configuration config, Logger logger) {
+		if (config.getConfigurationSection("activeOnCreate")!=null) this.activeOnCreate = config.getBoolean("activeOnCreate");
+		else config.set("activeOnCreate",true);
+		if (config.getConfigurationSection("allowAllToMan")!=null) this.allowAllToMan = config.getBoolean("allowAllToMan");
+		else config.set("allowAllToMan",false);
+		if (config.getConfigurationSection("allowAllToChangeAmmo")!=null) this.allowAllToChangeAmmo = config.getBoolean("allowAllToChangeAmmo");
+		else config.set("allowAllToChangeAmmo",false);
+		if (config.getConfigurationSection("allowAllToAddAmmoBox")!=null) this.allowAllToAddAmmoBox = config.getBoolean("allowAllToAddAmmoBox");
+		else config.set("allowAllToAddAmmoBox",false);
+		if (config.getConfigurationSection("allowAllToDestroy")!=null) this.allowAllToDestroy = config.getBoolean("allowAllToDestroy");
+		else config.set("allowAllToDestroy",false);
+    }
+
+	@Override
     public void onDisable(){
         Logger logger = getLogger();
         

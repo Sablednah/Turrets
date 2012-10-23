@@ -10,25 +10,39 @@ depend: [Vault]
 commands:
    turrets:
       aliases: [tur]
-      description: Turrets administrative command.
-      usage: /<command>
-      permission: turrets.command.turrets
-      permission-message: Permission <permission> required
-      
-# Permissions
-#permissions:
-#  turrets.*:
-#    description: Gives access to all Turrets permissions.
-#    children:
-#      turrets.reload: true
-#      turrets.addturret: true
-#      turrets.manturret: true
-#    turrets.reload:
-#      description: Allows user to reload the Turrets plugin. Often necessary for all turrets to load.
-#      default: op
-#    turrets.addturret:
-#      description: Allows user to create a new turret.
-#      default: true
-#    turrets.manturret:
-#      description: Allows user to man a turret.
-#      default: true
+
+
+permissions:
+  turrets.*:
+    description: Gives access to all Turrets permissions.
+    children:
+      turrets.loadsave: true
+      turrets.reload: true
+      turrets.addturret: true
+      turrets.destroyturret: true
+      turrets.manturret: true
+      turrets.setammotype: true
+    turrets.addturret:
+      description: Allows user to create a new turret.
+      default: true
+    turrets.destroyturret: 
+      description: Allows user to destroy a turret.
+      default: true
+    turrets.manturret:
+      description: Allows user to man a turret.
+      default: true
+    turrets.setammotype:
+      description: Allows user to change ammo type of a turret.
+      default: op
+    turrets.loadsave.*:
+      description: Gives access to loading and saving commands.
+      children: 
+        turrets.loadsave.save: true
+        turrets.loadsave.reload: true
+      turrets.loadsave.reload: 
+        description: Allows user to reload the Turrets plugin. Often necessary for all turrets to load.
+        default: op
+      turrets.loadsave.save: 
+        description: Allows user to save all Turrets to the database.
+        default: op
+        

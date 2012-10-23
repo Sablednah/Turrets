@@ -29,28 +29,30 @@ public class TurretsCommand implements CommandExecutor{
             //note: this command gets hung. doesn't work
             if(subcommand.equals("setammotype")) {
             	if(sender instanceof Player) {
-	            	if (args.length==2) {
-	            		String subcommand1 = args[1].toLowerCase();
-	            		if (subcommand1.equals("unlimited")) {
-	            			if(plugin.getPlayerCommander((Player) sender)==null) {
-	    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
-	                			plugin.playerCommanders.add(pcs);
-	                			pcs.getPlayer().sendMessage("Click turret to set to unlimited ammo.");
-	                			pcs.setUnlimAmmoCommanded(true);
-	                			pcs.setTurretAmmoStep(1);
-	                			pcs.setLockedState(true);
-	    	            	}
-	            		} else if (subcommand1.equals("useammobox")) {
-	            			if(plugin.getPlayerCommander((Player) sender)==null) {
-	    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
-	                			plugin.playerCommanders.add(pcs);
-	                			pcs.getPlayer().sendMessage("Click turret to set to use its ammo box.");
-	                			pcs.setUnlimAmmoCommanded(false);
-	                			pcs.setTurretAmmoStep(1);
-	                			pcs.setLockedState(true);
-	    	            	}
-	            		} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
-	            	} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
+            		if(((Player)sender).hasPermission("turrets.setammotype")) {
+		            	if (args.length==2) {
+		            		String subcommand1 = args[1].toLowerCase();
+		            		if (subcommand1.equals("unlimited")) {
+		            			if(plugin.getPlayerCommander((Player) sender)==null) {
+		    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
+		                			plugin.playerCommanders.add(pcs);
+		                			pcs.getPlayer().sendMessage("Click turret to set to unlimited ammo.");
+		                			pcs.setUnlimAmmoCommanded(true);
+		                			pcs.setTurretAmmoStep(1);
+		                			pcs.setLockedState(true);
+		    	            	}
+		            		} else if (subcommand1.equals("useammobox")) {
+		            			if(plugin.getPlayerCommander((Player) sender)==null) {
+		    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
+		                			plugin.playerCommanders.add(pcs);
+		                			pcs.getPlayer().sendMessage("Click turret to set to use its ammo box.");
+		                			pcs.setUnlimAmmoCommanded(false);
+		                			pcs.setTurretAmmoStep(1);
+		                			pcs.setLockedState(true);
+		    	            	}
+		            		} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
+		            	} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
+            		} else sender.sendMessage("You don't have permission to do that!");
             	} else sender.sendMessage("Only players can set turret ammo type of turret.");
             	return true;
             }
@@ -93,29 +95,40 @@ public class TurretsCommand implements CommandExecutor{
             	return true;
             }
             else if(subcommand.equals("save")){
-                try{
-                    plugin.saveTurrets();
-                    sender.sendMessage("Turrets saved to database.");
-                }catch(IOException e){
-                    plugin.getLogger().log(Level.WARNING,"Failed to save turrets",e);
-                    sender.sendMessage("Error saving turrets.");
-                }
-                
+            	if (sender instanceof Player) {
+            		if(sender.hasPermission("turrets.loadsave.save")) {
+		                try{
+		                    plugin.saveTurrets();
+		                    sender.sendMessage("Turrets saved to database.");
+		                }catch(IOException e){
+		                    plugin.getLogger().log(Level.WARNING,"Failed to save turrets",e);
+		                    sender.sendMessage("Error saving turrets.");
+		                }
+            		} else sender.sendMessage("You don't have permissions to save Turrets!");
+            	} else {
+            		try{
+	                    plugin.saveTurrets();
+	                    sender.sendMessage("Turrets saved to database.");
+	                }catch(IOException e){
+	                    plugin.getLogger().log(Level.WARNING,"Failed to save turrets",e);
+	                    sender.sendMessage("Error saving turrets.");
+	                }
+            	}
                 return true;
             }else if (subcommand.equals("reload")) {
             	if (sender instanceof Player) {
+            		if (sender.hasPermission("turrets.loadsave.reload")){
             		// TODO: check for permissions
-            		try {
-						Reload.turretsReload(sender, plugin);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+	            		try {
+							Reload.turretsReload(sender, plugin);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+            		}
             	}else{
             		try {
 						Reload.turretsReload(sender, plugin);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
             	}
