@@ -5,11 +5,13 @@
 # allowAllToChangeAmmo: True allows all players (with permissions) to change the ammo type of anyone's turrets.
 # allowAllToAddAmmoBox: True allows all players (with permissions) to add/remove ammo boxes from anyone's turrets.
 # allowAllToDestroy: True allows all players (with permissions) to destroy anyone's turrets.
+# allowAllToModActivate: True allows all players (with permissions) to activate/deactivate anyone's turrets.
 activeOnCreate: true
 allowAllToMan: false
 allowAllToChangeAmmo: false
 allowAllToAddAmmoBox: false
 allowAllToDestroy: false
+allowAllToModActivate: false
 
 # Upgrade Tiers
 #

@@ -54,11 +54,13 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     private int turretLookMatchShooterCD = 10;
     private boolean playerControl = false;
     private TurretShooter shooter = null;
+    private boolean isActive;
     
     
     public EntityTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
         super(((CraftWorld)world).getHandle());
         this.turret = turret;
+        this.setIsActive(this.turret.getPlugin().activeOnCreate);
         this.bukkitWorld = world;
         this.pivotX = pivotX;
         this.pivotY = pivotY;
@@ -120,91 +122,93 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         double range = upgradeTier.getRange();
         float accuracy = upgradeTier.getAccuracy();
         boolean lockedOn = false;
-        //If not currently targeting an entity, find a suitable one
-        if(!getPlayerControl()) {
-	        if(target == null){
-	            if(targetSearchCooldown == 0){
-	                Entity foundTarget = findTarget(range);
-	                
-	                if(foundTarget != null){
-	                    target = foundTarget;
-	                }else{
-	                    targetSearchCooldown = targetSearchInterval;
-	                }
-	            }
+        if(this.getIsActive()) {
+	        if(!getPlayerControl()) {
+	        	//If not currently targeting an entity, find a suitable one
+		        if(target == null){
+		            if(targetSearchCooldown == 0){
+		                Entity foundTarget = findTarget(range);
+		                
+		                if(foundTarget != null){
+		                    target = foundTarget;
+		                }else{
+		                    targetSearchCooldown = targetSearchInterval;
+		                }
+		            }
+		        }
+		        
+		        if(targetSearchCooldown > 0){
+		            targetSearchCooldown--;
+		        }
+		        
+		        lockedOn = false;
+		        
+		        //Track target
+		        if(target != null){
+		            net.minecraft.server.Entity nmsTarget = ((CraftEntity)target).getHandle();
+		            
+		            if(canSee(nmsTarget)){
+		                net.minecraft.server.World targetWorld = nmsTarget.world;
+		                double x = nmsTarget.locX;
+		                double y = nmsTarget.locY + nmsTarget.getHeadHeight();
+		                double z = nmsTarget.locZ;
+		                
+		                if(targetWorld == this.world && !target.isDead()){
+		                    double dx = x - pivotX;
+		                    double dy = y - pivotY;
+		                    double dz = z - pivotZ;
+		                    double distanceSquared = dx * dx + dy * dy + dz * dz;
+		                    
+		                    
+		                    
+		                    if(distanceSquared <= range * range){
+		                        lookAt(x,y,z);
+		                        lockedOn = true;
+		                    }else{
+		                        target = null;
+		                    }
+		                }else{
+		                    target = null;
+		                }
+		            }else{
+		                target = null;
+		            }
+		        }
+	        }
+	        else {
+	        	if(turretLookMatchShooterCD == 0) {
+		        	double dist = 4.0;
+		        	Location ploc = this.getShooter().getPlayer().getEyeLocation();
+		        	float plocPitch = ploc.getPitch();
+		        	float plocYaw = ploc.getYaw();
+		        	double yawInRad = ((double)plocYaw)*Math.PI/180;
+		        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
+		        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
+		        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
+		        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
+		        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
+		        	lookAt(plookX,plookY,plookZ);
+		        	turretLookMatchShooterCD = 10;
+	        	} else turretLookMatchShooterCD--;
 	        }
 	        
-	        if(targetSearchCooldown > 0){
-	            targetSearchCooldown--;
-	        }
 	        
-	        lockedOn = false;
-	        
-	        //Track target
-	        if(target != null){
-	            net.minecraft.server.Entity nmsTarget = ((CraftEntity)target).getHandle();
-	            
-	            if(canSee(nmsTarget)){
-	                net.minecraft.server.World targetWorld = nmsTarget.world;
-	                double x = nmsTarget.locX;
-	                double y = nmsTarget.locY + nmsTarget.getHeadHeight();
-	                double z = nmsTarget.locZ;
-	                
-	                if(targetWorld == this.world && !target.isDead()){
-	                    double dx = x - pivotX;
-	                    double dy = y - pivotY;
-	                    double dz = z - pivotZ;
-	                    double distanceSquared = dx * dx + dy * dy + dz * dz;
-	                    
-	                    
-	                    
-	                    if(distanceSquared <= range * range){
-	                        lookAt(x,y,z);
-	                        lockedOn = true;
-	                    }else{
-	                        target = null;
-	                    }
-	                }else{
-	                    target = null;
-	                }
-	            }else{
-	                target = null;
-	            }
-	        }
-        }
-        else {
-        	if(turretLookMatchShooterCD == 0) {
-	        	double dist = 4.0;
-	        	Location ploc = this.getShooter().getPlayer().getEyeLocation();
-	        	float plocPitch = ploc.getPitch();
-	        	float plocYaw = ploc.getYaw();
-	        	double yawInRad = ((double)plocYaw)*Math.PI/180;
-	        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
-	        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
-	        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
-	        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
-	        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
-	        	lookAt(plookX,plookY,plookZ);
-	        	turretLookMatchShooterCD = 10;
-        	} else turretLookMatchShooterCD--;
-        }
-        
-        
-        this.b(this.yaw,this.pitch);
-        //**************************Firing check*******************************/
-	    if(getPlayerControl()) {
-	    	//check if shooter tried to shoot since last cooldown
-	    	if(shooter.didShooterClick() && firingCooldown == 0) {
-	    		fireItemStack(accuracy);
-	    		firingCooldown = firingInterval*4/5;
-	    		shooter.setClickedFlag(false);
+	        this.b(this.yaw,this.pitch);
+	        //**************************Firing check*******************************/
+		    if(getPlayerControl()) {
+		    	//check if shooter tried to shoot since last cooldown
+		    	if(shooter.didShooterClick() && firingCooldown == 0) {
+		    		fireItemStack(accuracy);
+		    		firingCooldown = firingInterval*4/5;
+		    		shooter.setClickedFlag(false);
+		    	}
+		    } else {
+		    	//Fire item if locked onto target
+	        	if(lockedOn && firingCooldown == 0){
+		            fireItemStack(accuracy);
+		            firingCooldown = firingInterval;
+		        }
 	    	}
-	    } else {
-	    	//Fire item if locked onto target
-        	if(lockedOn && firingCooldown == 0){
-	            fireItemStack(accuracy);
-	            firingCooldown = firingInterval;
-	        }
     	}
         
         if(firingCooldown > 0){
@@ -478,4 +482,12 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     public void setYaw(float yaw) {
     	this.yaw = yaw;
     }
+
+	public boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+	}
 }

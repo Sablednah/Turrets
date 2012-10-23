@@ -53,7 +53,7 @@ public class Turret{
     }
     
     public List<TargetAssessor> getTargetAssessors(){
-        return plugin.getTargetAssessors();
+        return getPlugin().getTargetAssessors();
     }
     
     public void spawn(){
@@ -65,7 +65,7 @@ public class Turret{
     }
     
     public void remove(){
-        plugin.removeTurret(this);
+        getPlugin().removeTurret(this);
     }
     
     public void fireItemStack(ItemStack itemStack,float accuracy){
@@ -82,7 +82,7 @@ public class Turret{
     }
     
     public UpgradeTier updateUpgradeTier(Material material){
-        upgradeTier = plugin.getUpgradeLadder().getUpgradeTier(material);
+        upgradeTier = getPlugin().getUpgradeLadder().getUpgradeTier(material);
         return upgradeTier;
     }
     
@@ -141,5 +141,9 @@ public class Turret{
 				}else return false;
 			}else return false;
 		} else return false;
+	}
+
+	public TurretsPlugin getPlugin() {
+		return plugin;
 	}
 }

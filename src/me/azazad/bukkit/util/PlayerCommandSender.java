@@ -12,6 +12,8 @@ public class PlayerCommandSender {
 	private boolean senderLocked = false;
 	private boolean unlimitedAmmoCommanded;
 	private int turretAmmoStep = 0;
+	private int turretActivationStep = 0;
+	private int turretDeactivationStep = 0;
 	
 	
 	public PlayerCommandSender(Player sender) {
@@ -68,5 +70,21 @@ public class PlayerCommandSender {
 	
 	public void setTurretSelected(Turret turret) {
 		this.turretSelected = turret;
+	}
+
+	public void setTurretActivateStep(int i) {
+		this.turretActivationStep  = i;
+	}
+	
+	public int getTurretActivationStep() {
+		return this.turretActivationStep;
+	}
+
+	public int getTurretDeactivationStep() {
+		return this.turretDeactivationStep;
+	}
+	
+	public void setTurretDeactivationStep(int i) {
+		this.turretDeactivationStep  = i;
 	}
 }

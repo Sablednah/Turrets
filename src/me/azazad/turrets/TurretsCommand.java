@@ -133,6 +133,32 @@ public class TurretsCommand implements CommandExecutor{
 					}
             	}
             	return(true);
+        	}else if(subcommand.equals("activate")){
+        		if (sender instanceof Player) {
+        			Player player = (Player)sender;
+            		if(plugin.getPlayerCommander(player)==null) {
+            			if (player.hasPermission("turrets.activate")) {
+            				PlayerCommandSender pcs = new PlayerCommandSender(player);
+                			plugin.playerCommanders.add(pcs);
+                			pcs.setTurretActivateStep(1);
+                			sender.sendMessage("Select turret to activate.");
+            			} else sender.sendMessage(ChatColor.RED + "You don't have permission to activate turrets!");
+            		} else sender.sendMessage(ChatColor.RED + "You are executing another command!");
+            	}  else sender.sendMessage(ChatColor.RED + "Only a player can activate turrets!");
+            	return true;
+        	}else if(subcommand.equals("deactivate")){
+        		if (sender instanceof Player) {
+        			Player player = (Player)sender;
+            		if(plugin.getPlayerCommander(player)==null) {
+            			if (player.hasPermission("turrets.deactivate")) {
+            				PlayerCommandSender pcs = new PlayerCommandSender(player);
+                			plugin.playerCommanders.add(pcs);
+                			pcs.setTurretActivateStep(1);
+                			sender.sendMessage("Select turret to activate.");
+            			} else sender.sendMessage(ChatColor.RED + "You don't have permission to activate turrets!");
+            		} else sender.sendMessage(ChatColor.RED + "You are executing another command!");
+            	}  else sender.sendMessage(ChatColor.RED + "Only a player can activate turrets!");
+            	return true;
         	}else{
                 sender.sendMessage(subcommand+" is not a Turrets command.");
                 return true;

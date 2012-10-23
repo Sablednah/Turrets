@@ -117,6 +117,42 @@ public class TurretsListener implements Listener{
 	    				}
 	    			}
 	    		}
+	    	} else if(pcs.getTurretActivationStep() == 1) {
+	    		if(event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+	    			Player player = event.getPlayer();
+	    			Block clickedBlock = event.getClickedBlock();
+	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
+	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
+	    				if(!plugin.canBuildTurret(postLocation)) {
+	    					player.sendMessage("Turret activated.");
+//	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
+//	    					Turret turret = pcs.getTurretSelected();
+	    					Turret turret = plugin.getTurret(postLocation);
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToModActivate)) {
+	    						turret.getEntity().setIsActive(true);
+		    					plugin.playerCommanders.remove(pcs);
+	    					}
+	    				}
+	    			}
+	    		}
+	    	} else if(pcs.getTurretDeactivationStep() == 1) {
+	    		if(event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+	    			Player player = event.getPlayer();
+	    			Block clickedBlock = event.getClickedBlock();
+	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
+	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
+	    				if(!plugin.canBuildTurret(postLocation)) {
+	    					player.sendMessage("Turret deactivated.");
+//	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
+//	    					Turret turret = pcs.getTurretSelected();
+	    					Turret turret = plugin.getTurret(postLocation);
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToModActivate)) {
+		    					turret.getEntity().setIsActive(false);
+		    					plugin.playerCommanders.remove(pcs);
+	    					}
+	    				}
+	    			}
+	    		}
 	    	}
     	}
         if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getBlockFace() == BlockFace.UP){

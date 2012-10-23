@@ -4,6 +4,5 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="F:/Users/Matt/Downloads/bukkit java/bukkit-1.3.2-R1.0.jar" sourcepath="F:/Users/Matt/Downloads/bukkit java/download/Bukkit-Bukkit-1.3.2-R2.0-1-ga4314b1.zip"/>
 	<classpathentry kind="lib" path="F:/Users/Matt/Downloads/bukkit java/craftbukkit-1.3.2-R1.0.jar" sourcepath="F:/Users/Matt/Downloads/bukkit java/download/Bukkit-CraftBukkit-1.3.2-R2.0-1-g06c9f8a.zip"/>
-	<classpathentry kind="lib" path="F:/Users/Matt/Downloads/bukkit java/Vault.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

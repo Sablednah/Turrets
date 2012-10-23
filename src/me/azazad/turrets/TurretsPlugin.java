@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import me.azazad.bukkit.util.BlockLocation;
@@ -22,17 +21,16 @@ import me.azazad.turrets.persistence.YAMLTurretDatabase;
 import me.azazad.turrets.targeting.MobAssessor;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeLadder;
-import net.milkbowl.vault.permission.Permission;
+//import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.Configuration;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.ServicesManager;
+//import org.bukkit.plugin.RegisteredServiceProvider;
+//import org.bukkit.plugin.ServicesManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
@@ -50,6 +48,7 @@ public class TurretsPlugin extends JavaPlugin{
     public boolean allowAllToChangeAmmo = false;
     public boolean allowAllToAddAmmoBox = false;
     public boolean allowAllToDestroy = false;
+    public boolean allowAllToModActivate = false;
     
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
@@ -58,7 +57,7 @@ public class TurretsPlugin extends JavaPlugin{
     private final Map<BlockLocation,Turret> turrets = new HashMap<BlockLocation,Turret>();
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
     
-    private Permission permissionsProvider;
+//    private Permission permissionsProvider;
     
     public TurretsPlugin(){
         targetAssessors.add(new MobAssessor());
@@ -87,18 +86,18 @@ public class TurretsPlugin extends JavaPlugin{
         logger.info("Upgrade tiers loaded.");
         
         //load providers
-        ServicesManager servicesManager = server.getServicesManager();
-        
-        RegisteredServiceProvider<Permission> permissionsRSP = servicesManager.getRegistration(Permission.class);
-        if(permissionsRSP != null){
-            permissionsProvider = permissionsRSP.getProvider();
-        }
-        
-        if(permissionsProvider == null){
-            logger.severe("Failed to integrate with Vault. Are you sure it is installed correctly? Disabling this plugin.");
-            pluginManager.disablePlugin(this);
-            return;
-        }
+//        ServicesManager servicesManager = server.getServicesManager();
+//        
+//        RegisteredServiceProvider<Permission> permissionsRSP = servicesManager.getRegistration(Permission.class);
+//        if(permissionsRSP != null){
+//            permissionsProvider = permissionsRSP.getProvider();
+//        }
+//        
+//        if(permissionsProvider == null){
+//            logger.severe("Failed to integrate with Vault. Are you sure it is installed correctly? Disabling this plugin.");
+//            pluginManager.disablePlugin(this);
+//            return;
+//        }
         
         //register listeners
         pluginManager.registerEvents(new TurretsListener(this),this);
@@ -107,9 +106,9 @@ public class TurretsPlugin extends JavaPlugin{
         getCommand("turrets").setExecutor(new TurretsCommand(this));
         
         //initialize post_material types
-        this.POST_MATERIALS.add(Material.FENCE);
-        this.POST_MATERIALS.add(Material.IRON_FENCE);
-        this.POST_MATERIALS.add(Material.NETHER_FENCE);
+        POST_MATERIALS.add(Material.FENCE);
+        POST_MATERIALS.add(Material.IRON_FENCE);
+        POST_MATERIALS.add(Material.NETHER_FENCE);
         
         
         //load turrets
@@ -135,6 +134,8 @@ public class TurretsPlugin extends JavaPlugin{
 		else config.set("allowAllToAddAmmoBox",false);
 		if (config.getConfigurationSection("allowAllToDestroy")!=null) this.allowAllToDestroy = config.getBoolean("allowAllToDestroy");
 		else config.set("allowAllToDestroy",false);
+		if (config.getConfigurationSection("allowAllToModActivate")!=null) this.allowAllToModActivate = config.getBoolean("allowAllToModActivate");
+		else config.set("allowAllToModActivate",false);
     }
 
 	@Override
@@ -175,9 +176,7 @@ public class TurretsPlugin extends JavaPlugin{
     
     public Turret getTurret(Player p) {
     	Turret turret = null;
-    	Iterator<Turret> turret_iter = turrets.values().iterator();
-    	while (turret_iter.hasNext()) {
-    		Turret cur_turr = turret_iter.next();
+    	for (Turret cur_turr : turrets.values()) {
     		if (cur_turr.getEntity().getShooter()!=null) {
 	    		if (cur_turr.getEntity().getShooter().getPlayer().equals(p)) {
 	    			turret = cur_turr;
@@ -191,9 +190,7 @@ public class TurretsPlugin extends JavaPlugin{
     public PlayerCommandSender getPlayerCommander(Player player) {
     	PlayerCommandSender pcsInCommand = null;
 	    if (this.playerCommanders.size()>0) {
-    		Iterator<PlayerCommandSender> iter = this.playerCommanders.iterator();
-	    	while (iter.hasNext()) {
-	    		PlayerCommandSender pcs = iter.next();
+	    	for(PlayerCommandSender pcs : this.playerCommanders) {
 	    		if (pcs.getPlayer().equals(player)) {
 	    			pcsInCommand = pcs;
 	    		}
@@ -253,9 +250,9 @@ public class TurretsPlugin extends JavaPlugin{
         }
     }
     
-    public Permission getPermissionsProvider(){
-        return permissionsProvider;
-    }
+//    public Permission getPermissionsProvider(){
+//        return permissionsProvider;
+//    }
     
     
     public void notifyPlayer(Player player,TurretsMessage messageType){
