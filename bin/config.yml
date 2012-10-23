@@ -6,12 +6,16 @@
 # allowAllToAddAmmoBox: True allows all players (with permissions) to add/remove ammo boxes from anyone's turrets.
 # allowAllToDestroy: True allows all players (with permissions) to destroy anyone's turrets.
 # allowAllToModActivate: True allows all players (with permissions) to activate/deactivate anyone's turrets.
+# pickupUnlimArrows: True allows players to pick up arrows shot by turrets with unlimited ammo.
+# pickupAmmoArrows: True allows players to pick up arrows shot by turrets using ammo boxes.
 activeOnCreate: true
 allowAllToMan: false
 allowAllToChangeAmmo: false
 allowAllToAddAmmoBox: false
 allowAllToDestroy: false
 allowAllToModActivate: false
+pickupUnlimArrows: false
+pickupAmmoArrows: true
 
 # Upgrade Tiers
 #

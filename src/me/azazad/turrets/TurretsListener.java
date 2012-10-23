@@ -25,6 +25,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
@@ -369,6 +370,13 @@ public class TurretsListener implements Listener{
         		player.sendMessage("You don't have permissions to upgrade turrets!");
         		event.setCancelled(true);
         	}
+        }
+    }
+    
+    @EventHandler
+    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        if(event.getItem().hasMetadata("no_pickup")) {
+            event.setCancelled(true);
         }
     }
 }

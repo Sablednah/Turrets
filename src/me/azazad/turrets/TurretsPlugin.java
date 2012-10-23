@@ -49,6 +49,8 @@ public class TurretsPlugin extends JavaPlugin{
     public boolean allowAllToAddAmmoBox = false;
     public boolean allowAllToDestroy = false;
     public boolean allowAllToModActivate = false;
+    public boolean pickupUnlimArrows = false;
+    public boolean pickupAmmoArrows = true;
     
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
@@ -136,6 +138,10 @@ public class TurretsPlugin extends JavaPlugin{
 		else config.set("allowAllToDestroy",false);
 		if (config.getConfigurationSection("allowAllToModActivate")!=null) this.allowAllToModActivate = config.getBoolean("allowAllToModActivate");
 		else config.set("allowAllToModActivate",false);
+		if (config.getConfigurationSection("pickupUnlimArrows")!=null) this.pickupUnlimArrows = config.getBoolean("pickupUnlimArrows");
+		else config.set("pickupUnlimArrows",false);
+		if (config.getConfigurationSection("pickupAmmoArrows")!=null) this.pickupAmmoArrows = config.getBoolean("pickupAmmoArrows");
+		else config.set("pickupAmmoArrows",true);
     }
 
 	@Override

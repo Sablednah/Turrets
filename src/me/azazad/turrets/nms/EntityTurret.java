@@ -31,6 +31,8 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
 
@@ -351,6 +353,10 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             switch(itemStack.getType()){
                 case ARROW:
                     EntityArrow entityArrow = new EntityArrow(world,itemX,itemY,itemZ);
+                    if(this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().pickupAmmoArrows) 
+                    	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
+                    if(!this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().pickupUnlimArrows)
+                    	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
                     entityArrow.shoot(factorX,factorY,factorZ,1.1f,accuracy);
                     entityArrow.fromPlayer = 1;
                     world.addEntity(entityArrow);
