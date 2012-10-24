@@ -310,30 +310,40 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     	if (this.getTurret().getUsesAmmoBox()) {
     		TurretAmmoBox ammoBox = this.getTurret().getTurretAmmoBox();
     		if (ammoBox.getAmmoChestNum() > 0) {
-    			Material matToUse = null;
-    			for (Chest chest : ammoBox.getMap().values()) {
-    				if (matToUse!=null) break;
-    				for(Material material : this.getTurret().getPlugin().getAmmoTypes()) {
-    					if(chest.getInventory().contains(material)) {
-    						matToUse = material;
-    						break;
-    					}
-    				}//********NOTE: THIS DOESN'T WORK. DOES NOT FIND ANY MATERIALS OR SOMETHING...***************
-    				if (matToUse!=null) {
+    			for(Chest chest : ammoBox.getMap().values()) {
+    				if(chest.getInventory().contains(Material.ARROW)) {
     					ItemStack[] chestInv = chest.getInventory().getContents();
     					for (ItemStack item : chestInv) {
-    						if (item!=null && item.getType().equals(matToUse)) {
-    							if (item.getAmount() > 1) {
-    								item.setAmount(item.getAmount()-1);
-    							} else {
-    								item.setType(Material.AIR);
-    							}
-    							fireItemStack(new ItemStack(matToUse,1),accuracy);
-    							break;
+    						if (item!=null && item.getType().equals(Material.ARROW)) {
+    							fireItemStack(new ItemStack(Material.ARROW,1),accuracy);
     						}
     					}
     				}
     			}
+//    			Material matToUse = null;
+//    			for (Chest chest : ammoBox.getMap().values()) {
+//    				if (matToUse!=null) break;
+//    				for(Material material : this.getTurret().getPlugin().getAmmoTypes()) {
+//    					if(chest.getInventory().contains(material)) {
+//    						matToUse = material;
+//    						break;
+//    					}
+//    				}//********NOTE: THIS DOESN'T WORK. DOES NOT FIND ANY MATERIALS OR SOMETHING...***************
+//    				if (matToUse!=null) {
+//    					ItemStack[] chestInv = chest.getInventory().getContents();
+//    					for (ItemStack item : chestInv) {
+//    						if (item!=null && item.getType().equals(matToUse)) {
+//    							if (item.getAmount() > 1) {
+//    								item.setAmount(item.getAmount()-1);
+//    							} else {
+//    								item.setType(Material.AIR);
+//    							}
+//    							fireItemStack(new ItemStack(matToUse,1),accuracy);
+//    							break;
+//    						}
+//    					}
+//    				}
+//    			}
     		}
     	} else {
 	        ItemStack itemStack = new ItemStack(Material.ARROW,1);
