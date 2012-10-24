@@ -23,6 +23,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
@@ -200,8 +201,6 @@ public class TurretsListener implements Listener{
 	    			if (rider.isOp() || turret.getOwnerName().equals(rider.getName()) || plugin.allowAllToMan) {
 		    			TurretShooter shooter = new TurretShooter(rider);
 		    			turret.getEntity().attachShooter(shooter);
-		    			turret.getEntity().setPitch(rider.getLocation().getPitch());
-						turret.getEntity().setYaw(rider.getLocation().getYaw());
 	    			}
     			}
     		}
@@ -378,5 +377,13 @@ public class TurretsListener implements Listener{
         if(event.getItem().hasMetadata("no_pickup")) {
             event.setCancelled(true);
         }
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+    	if(plugin.getTurret(event.getEntity())!=null) {
+    		Turret turret = plugin.getTurret(event.getEntity());
+    		turret.getEntity().detachShooter();
+    	}
     }
 }

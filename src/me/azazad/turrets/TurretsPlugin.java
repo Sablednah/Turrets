@@ -21,7 +21,6 @@ import me.azazad.turrets.persistence.YAMLTurretDatabase;
 import me.azazad.turrets.targeting.MobAssessor;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeLadder;
-//import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
@@ -42,6 +41,7 @@ public class TurretsPlugin extends JavaPlugin{
     public static final String PERM_TURRET_CREATE = "turrets.create";
     public static final String PERM_TURRET_DESTROY = "turrets.destroy";
     public static final String PERM_ADMIN = "turrets.admin";
+    
     public static Logger globalLogger;
     public boolean activeOnCreate = true;
     public boolean allowAllToMan = false;
@@ -55,6 +55,7 @@ public class TurretsPlugin extends JavaPlugin{
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
     private TurretDatabase turretDatabase;
+    private List<Material> ammoTypes = new ArrayList<Material>();
     private final List<TargetAssessor> targetAssessors = new ArrayList<TargetAssessor>();
     private final Map<BlockLocation,Turret> turrets = new HashMap<BlockLocation,Turret>();
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
@@ -68,7 +69,7 @@ public class TurretsPlugin extends JavaPlugin{
     @Override
     public void onLoad(){
         //TODO: check to make sure that the server is CraftBukkit
-        
+    	
         pdf = getDescription();
         turretDatabase = new YAMLTurretDatabase(new File(getDataFolder(),TURRET_DB_FILENAME),this);
     }
@@ -84,7 +85,9 @@ public class TurretsPlugin extends JavaPlugin{
         saveDefaultConfig();
         Configuration config = getConfig();
         upgradeLadder.loadUpgradeTiers(config,logger);
+        logger.warning("About to go into loadConfigOptions");
         loadConfigOptions(config,logger);
+        loadAmmoTypes(config,logger);
         logger.info("Upgrade tiers loaded.");
         
         //load providers
@@ -124,25 +127,48 @@ public class TurretsPlugin extends JavaPlugin{
         logger.info("Total number of turrets: "+turrets.size());
         
     }
-    
-    private void loadConfigOptions(Configuration config, Logger logger) {
-		if (config.getConfigurationSection("activeOnCreate")!=null) this.activeOnCreate = config.getBoolean("activeOnCreate");
+
+	private void loadConfigOptions(Configuration config, Logger logger) {
+		//TODO:Make this a general thing. It looks up all keys, ignores certain special ones (like 'tiers'), but for the rest
+		//looks up the default value for the else part.
+		if (config.get("activeOnCreate",null)!=null) this.activeOnCreate = config.getBoolean("activeOnCreate");
 		else config.set("activeOnCreate",true);
-		if (config.getConfigurationSection("allowAllToMan")!=null) this.allowAllToMan = config.getBoolean("allowAllToMan");
+		if (config.get("allowAllToMan",null)!=null) this.allowAllToMan = config.getBoolean("allowAllToMan");
 		else config.set("allowAllToMan",false);
-		if (config.getConfigurationSection("allowAllToChangeAmmo")!=null) this.allowAllToChangeAmmo = config.getBoolean("allowAllToChangeAmmo");
+		if (config.get("allowAllToChangeAmmo",null)!=null) this.allowAllToChangeAmmo = config.getBoolean("allowAllToChangeAmmo");
 		else config.set("allowAllToChangeAmmo",false);
-		if (config.getConfigurationSection("allowAllToAddAmmoBox")!=null) this.allowAllToAddAmmoBox = config.getBoolean("allowAllToAddAmmoBox");
+		if (config.get("allowAllToAddAmmoBox",null)!=null) this.allowAllToAddAmmoBox = config.getBoolean("allowAllToAddAmmoBox");
 		else config.set("allowAllToAddAmmoBox",false);
-		if (config.getConfigurationSection("allowAllToDestroy")!=null) this.allowAllToDestroy = config.getBoolean("allowAllToDestroy");
+		if (config.get("allowAllToDestroy",null)!=null) this.allowAllToDestroy = config.getBoolean("allowAllToDestroy");
 		else config.set("allowAllToDestroy",false);
-		if (config.getConfigurationSection("allowAllToModActivate")!=null) this.allowAllToModActivate = config.getBoolean("allowAllToModActivate");
+		if (config.get("allowAllToModActivate",null)!=null) this.allowAllToModActivate = config.getBoolean("allowAllToModActivate");
 		else config.set("allowAllToModActivate",false);
-		if (config.getConfigurationSection("pickupUnlimArrows")!=null) this.pickupUnlimArrows = config.getBoolean("pickupUnlimArrows");
+		if (config.get("pickupUnlimArrows",null)!=null) this.pickupUnlimArrows = config.getBoolean("pickupUnlimArrows");
 		else config.set("pickupUnlimArrows",false);
-		if (config.getConfigurationSection("pickupAmmoArrows")!=null) this.pickupAmmoArrows = config.getBoolean("pickupAmmoArrows");
+		if (config.get("pickupAmmoArrows",null)!=null) this.pickupAmmoArrows = config.getBoolean("pickupAmmoArrows");
 		else config.set("pickupAmmoArrows",true);
     }
+	
+private void loadAmmoTypes(Configuration config, Logger logger) {
+		if(config.getConfigurationSection("boxAmmoTypes")==null) {
+			config.createSection("boxAmmoTypes");
+			config.set("boxAmmoTypes", "arrow");
+		}
+		else {
+			String[] ammoTypesArr = config.get("boxAmmoTypes").toString().split(",");
+			for(String ammoType : ammoTypesArr) {
+				ammoType.toLowerCase();
+				ammoType.replace(" ", "");
+				if(ammoType.equals("arrow")) this.getAmmoTypes().add(Material.ARROW);
+				else if(ammoType.equals("snowball") || ammoType.equals("snow ball") || ammoType.equals("snow_ball")) this.getAmmoTypes().add(Material.SNOW_BALL);
+				else if(ammoType.equals("expbottle") || ammoType.equals("exp bottle") || ammoType.equals("exp_bottle")) this.getAmmoTypes().add(Material.EXP_BOTTLE);
+				else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) this.getAmmoTypes().add(Material.MONSTER_EGG);
+				else if(ammoType.equals("egg")) this.getAmmoTypes().add(Material.EGG);
+				else if(ammoType.equals("potion")) this.getAmmoTypes().add(Material.POTION);
+				else if(ammoType.equals("fireball") || ammoType.equals("fire ball") || ammoType.equals("fire_ball")) this.getAmmoTypes().add(Material.FIREBALL);
+			}
+		}
+	}
 
 	@Override
     public void onDisable(){
@@ -154,6 +180,7 @@ public class TurretsPlugin extends JavaPlugin{
         }catch(IOException e){
             logger.log(Level.SEVERE,"Failed to save turrets",e);
         }
+        this.saveConfig();
     }
     
     public UpgradeLadder getUpgradeLadder(){
@@ -296,5 +323,9 @@ public class TurretsPlugin extends JavaPlugin{
 			}
 		}
 		return turret;
+	}
+
+	public List<Material> getAmmoTypes() {
+		return ammoTypes;
 	}
 }

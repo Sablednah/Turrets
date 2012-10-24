@@ -21,6 +21,7 @@ import net.minecraft.server.EntityThrownExpBottle;
 import net.minecraft.server.ItemMonsterEgg;
 import net.minecraft.server.Vec3D;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -32,7 +33,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
-import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
 
@@ -125,7 +125,8 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         float accuracy = upgradeTier.getAccuracy();
         boolean lockedOn = false;
         if(this.getIsActive()) {
-	        if(!getPlayerControl()) {
+	        //if(!getPlayerControl()) {
+        	if(true) {
 	        	//If not currently targeting an entity, find a suitable one
 		        if(target == null){
 		            if(targetSearchCooldown == 0){
@@ -177,22 +178,22 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 		            }
 		        }
 	        }
-	        else {
-	        	if(turretLookMatchShooterCD == 0) {
-		        	double dist = 4.0;
-		        	Location ploc = this.getShooter().getPlayer().getEyeLocation();
-		        	float plocPitch = ploc.getPitch();
-		        	float plocYaw = ploc.getYaw();
-		        	double yawInRad = ((double)plocYaw)*Math.PI/180;
-		        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
-		        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
-		        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
-		        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
-		        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
-		        	lookAt(plookX,plookY,plookZ);
-		        	turretLookMatchShooterCD = 10;
-	        	} else turretLookMatchShooterCD--;
-	        }
+//	        else {
+//	        	if(turretLookMatchShooterCD == 0) {
+//		        	double dist = 4.0;
+//		        	Location ploc = this.getShooter().getPlayer().getEyeLocation();
+//		        	float plocPitch = ploc.getPitch();
+//		        	float plocYaw = ploc.getYaw();
+//		        	double yawInRad = ((double)plocYaw)*Math.PI/180;
+//		        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
+//		        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
+//		        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
+//		        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
+//		        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
+//		        	lookAt(plookX,plookY,plookZ);
+//		        	turretLookMatchShooterCD = 10;
+//	        	} else turretLookMatchShooterCD--;
+//	        }
 	        
 	        
 	        this.b(this.yaw,this.pitch);
@@ -309,21 +310,28 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     	if (this.getTurret().getUsesAmmoBox()) {
     		TurretAmmoBox ammoBox = this.getTurret().getTurretAmmoBox();
     		if (ammoBox.getAmmoChestNum() > 0) {
+    			Material matToUse = null;
     			for (Chest chest : ammoBox.getMap().values()) {
-    				if (chest.getInventory().contains(Material.ARROW)) {
+    				if (matToUse!=null) break;
+    				for(Material material : this.getTurret().getPlugin().getAmmoTypes()) {
+    					if(chest.getInventory().contains(material)) {
+    						matToUse = material;
+    						break;
+    					}
+    				}//********NOTE: THIS DOESN'T WORK. DOES NOT FIND ANY MATERIALS OR SOMETHING...***************
+    				if (matToUse!=null) {
     					ItemStack[] chestInv = chest.getInventory().getContents();
     					for (ItemStack item : chestInv) {
-    						if (item!=null && item.getType().equals(Material.ARROW)) {
+    						if (item!=null && item.getType().equals(matToUse)) {
     							if (item.getAmount() > 1) {
     								item.setAmount(item.getAmount()-1);
     							} else {
     								item.setType(Material.AIR);
     							}
-    							fireItemStack(new ItemStack(Material.ARROW,1),accuracy);
+    							fireItemStack(new ItemStack(matToUse,1),accuracy);
     							break;
     						}
     					}
-    					break;
     				}
     			}
     		}
