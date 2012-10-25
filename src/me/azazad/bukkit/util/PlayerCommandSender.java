@@ -2,6 +2,7 @@ package me.azazad.bukkit.util;
 
 import me.azazad.turrets.Turret;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class PlayerCommandSender {
@@ -14,6 +15,8 @@ public class PlayerCommandSender {
 	private int turretAmmoStep = 0;
 	private int turretActivationStep = 0;
 	private int turretDeactivationStep = 0;
+	private int turretAmmoTypeStep = 0;
+	private Material ammoChangeAmmoTypeVal = null;
 	
 	
 	public PlayerCommandSender(Player sender) {
@@ -44,11 +47,11 @@ public class PlayerCommandSender {
 		this.turretCreationStep = i;
 	}
 	
-	public int getTurretAmmoStep() {
+	public int getTurretAmmoUsageStep() {
 		return(this.turretAmmoStep);
 	}
 	
-	public void setTurretAmmoStep(int i) {
+	public void setTurretAmmoUsageStep(int i) {
 		this.turretAmmoStep = i;
 	}
 	
@@ -86,5 +89,21 @@ public class PlayerCommandSender {
 	
 	public void setTurretDeactivationStep(int i) {
 		this.turretDeactivationStep  = i;
+	}
+
+	public void setTurretAmmoTypeStep(int i) {
+		this.turretAmmoTypeStep  = i;
+	}
+	
+	public int getTurretAmmoTypeStep() {
+		return this.turretAmmoTypeStep;
+	}
+
+	public Material getAmmoChangeAmmoTypeVal() {
+		return ammoChangeAmmoTypeVal;
+	}
+
+	public void setAmmoChangeAmmoTypeVal(Material material) {
+		this.ammoChangeAmmoTypeVal = material;
 	}
 }

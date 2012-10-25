@@ -7,6 +7,7 @@ import me.azazad.bukkit.util.PlayerCommandSender;
 import me.azazad.bukkit.util.Reload;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -27,9 +28,9 @@ public class TurretsCommand implements CommandExecutor{
         if(args.length > 0){
             String subcommand = args[0].toLowerCase();
             //note: this command gets hung. doesn't work
-            if(subcommand.equals("setammotype")) {
+            if(subcommand.equals("setammousage")) {
             	if(sender instanceof Player) {
-            		if(((Player)sender).hasPermission("turrets.setammotype")) {
+            		if(((Player)sender).hasPermission("turrets.setammousage")) {
 		            	if (args.length==2) {
 		            		String subcommand1 = args[1].toLowerCase();
 		            		if (subcommand1.equals("unlimited")) {
@@ -38,7 +39,7 @@ public class TurretsCommand implements CommandExecutor{
 		                			plugin.playerCommanders.add(pcs);
 		                			pcs.getPlayer().sendMessage("Click turret to set to unlimited ammo.");
 		                			pcs.setUnlimAmmoCommanded(true);
-		                			pcs.setTurretAmmoStep(1);
+		                			pcs.setTurretAmmoUsageStep(1);
 		                			pcs.setLockedState(true);
 		    	            	}
 		            		} else if (subcommand1.equals("useammobox")) {
@@ -47,11 +48,11 @@ public class TurretsCommand implements CommandExecutor{
 		                			plugin.playerCommanders.add(pcs);
 		                			pcs.getPlayer().sendMessage("Click turret to set to use its ammo box.");
 		                			pcs.setUnlimAmmoCommanded(false);
-		                			pcs.setTurretAmmoStep(1);
+		                			pcs.setTurretAmmoUsageStep(1);
 		                			pcs.setLockedState(true);
 		    	            	}
-		            		} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
-		            	} else sender.sendMessage("Correct usage: /turrets setAmmoType unlimited/useAmmoBox");
+		            		} else sender.sendMessage("Correct usage: /turrets setAmmoUsage unlimited/useAmmoBox");
+		            	} else sender.sendMessage("Correct usage: /turrets setAmmoUsage unlimited/useAmmoBox");
             		} else sender.sendMessage("You don't have permission to do that!");
             	} else sender.sendMessage("Only players can set turret ammo type of turret.");
             	return true;
@@ -153,12 +154,40 @@ public class TurretsCommand implements CommandExecutor{
             			if (player.hasPermission("turrets.deactivate")) {
             				PlayerCommandSender pcs = new PlayerCommandSender(player);
                 			plugin.playerCommanders.add(pcs);
-                			pcs.setTurretActivateStep(1);
-                			sender.sendMessage("Select turret to activate.");
+                			pcs.setTurretDeactivationStep(1);
+                			sender.sendMessage("Select turret to deactivate.");
             			} else sender.sendMessage(ChatColor.RED + "You don't have permission to activate turrets!");
             		} else sender.sendMessage(ChatColor.RED + "You are executing another command!");
             	}  else sender.sendMessage(ChatColor.RED + "Only a player can activate turrets!");
             	return true;
+        	} else if(subcommand.equals("setammotype")) {
+        		if(sender instanceof Player) {
+        			Player player = (Player)sender;
+        			if(player.hasPermission("turrets.setammotype")) {
+        				if(args.length==2) {
+        					String ammoType = args[1];
+        					Material matToUse = null;
+        					if(ammoType.equals("arrow")) matToUse = Material.ARROW;
+        					else if(ammoType.equals("snowball") || ammoType.equals("snow_ball")) matToUse = Material.SNOW_BALL;
+        					else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle")) matToUse = Material.EXP_BOTTLE;
+        					else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) matToUse = Material.MONSTER_EGG;
+        					else if(ammoType.equals("egg")) matToUse = Material.EGG;
+        					else if(ammoType.equals("potion")) matToUse = Material.POTION;
+        					else if(ammoType.equals("fireball") || ammoType.equals("fire_ball")) matToUse = Material.FIREBALL;
+        					
+        					if(matToUse!=null && plugin.getUnlimitedAmmoTypes().contains(matToUse)) {
+        						if(plugin.getPlayerCommander(player) == null) {
+        							PlayerCommandSender pcs = new PlayerCommandSender(player);
+        							plugin.playerCommanders.add(pcs);
+        							pcs.setTurretAmmoTypeStep(1);
+        							pcs.setAmmoChangeAmmoTypeVal(matToUse);
+        							player.sendMessage("Now click which turret you'd like to change the ammo type of.");
+        						} else player.sendMessage(ChatColor.RED + "You are executing another command!");
+        					} else player.sendMessage(ChatColor.RED + args[1] + " is not a supported ammo type!");
+        				} else player.sendMessage("Example usage: /turrets setAmmoType fireball");
+        			} else player.sendMessage(ChatColor.RED + "You don't have permission to change turret's ammo type!");
+        		} else sender.sendMessage(ChatColor.RED + "Only a player can change a turret's ammo type!");
+        		return true;
         	}else{
                 sender.sendMessage(subcommand+" is not a Turrets command.");
                 return true;

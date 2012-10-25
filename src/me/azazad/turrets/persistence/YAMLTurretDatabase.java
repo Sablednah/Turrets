@@ -12,6 +12,7 @@ import me.azazad.turrets.TurretShooter;
 import me.azazad.turrets.TurretsPlugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
@@ -25,6 +26,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
     private static final String RELOAD_SHOOTER_PATH = "shooter";
     private static final String AMMO_BOX_PATH = "ammobox";
     private static final String USES_AMMO_PATH = "usesAmmo";
+    private static final String UNLIM_AMMO_TYPE = "unlimammotype";
     
     private final File file;
     private final TurretsPlugin plugin;
@@ -72,6 +74,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
             		turret.getTurretAmmoBox().addAmmoChest(chestLocation.getLocation().getBlock());
             	}
             }
+            if(!turret.getUsesAmmoBox()) turret.getEntity().setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
         }
         
         return turrets;
@@ -109,6 +112,16 @@ public class YAMLTurretDatabase implements TurretDatabase{
             	turret.getEntity().attachShooter(shooter);
             	turret.getEntity().getBukkitEntity().setPassenger(Bukkit.getPlayer(shooterName));
             }
+            if (turretSection.getKeys(false).contains(AMMO_BOX_PATH)) {
+            	ConfigurationSection chestSections = turretSection.getConfigurationSection(AMMO_BOX_PATH);
+            	Set<String> chestIDs = chestSections.getKeys(false);
+            	for (String chestID: chestIDs) {
+            		ConfigurationSection chestSection = chestSections.getConfigurationSection(chestID);
+            		BlockLocation chestLocation = BlockLocation.loadFromConfigSection(chestSection,server);
+            		turret.getTurretAmmoBox().addAmmoChest(chestLocation.getLocation().getBlock());
+            	}
+            }
+            if(!turret.getUsesAmmoBox()) turret.getEntity().setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
         }
     }
     
@@ -128,6 +141,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
 	            	chestid++;
 	        	}
 	        }
+	        if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getEntity().getUnlimitedAmmoType().toString());
             id++;
         }
         
@@ -153,6 +167,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
 	            	chestid++;
 	        	}
 	        }
+            if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getEntity().getUnlimitedAmmoType().toString());
             id++;
         }
         backing.save(file);

@@ -102,7 +102,7 @@ public class TurretsListener implements Listener{
 	    				}
 	    			}
 	    		}
-	    	} else if (pcs.getTurretAmmoStep() == 1 && pcs.getLockedState()) {
+	    	} else if (pcs.getTurretAmmoUsageStep() == 1 && pcs.getLockedState()) {
 	    		if(event.getAction() == Action.LEFT_CLICK_BLOCK) {
 	    			Player player = event.getPlayer();
     	    		Block clickedBlock = event.getClickedBlock();
@@ -144,13 +144,29 @@ public class TurretsListener implements Listener{
 	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
-	    					player.sendMessage("Turret deactivated.");
-//	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
-//	    					Turret turret = pcs.getTurretSelected();
 	    					Turret turret = plugin.getTurret(postLocation);
 	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToModActivate)) {
 		    					turret.getEntity().setIsActive(false);
 		    					plugin.playerCommanders.remove(pcs);
+		    					player.sendMessage("Turret deactivated.");
+	    					}
+	    				}
+	    			}
+	    		}
+	    	} else if(pcs.getTurretAmmoTypeStep() == 1) {
+	    		if(event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+	    			Player player = event.getPlayer();
+	    			Block clickedBlock = event.getClickedBlock();
+	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
+	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
+	    				if(!plugin.canBuildTurret(postLocation)) {
+	    					Turret turret = plugin.getTurret(postLocation);
+	    					if(!turret.getUsesAmmoBox()) {
+		    					if(player.isOp() || turret.getOwnerName().equals(player.getName())) {
+		    						turret.getEntity().setUnlimitedAmmoType(pcs.getAmmoChangeAmmoTypeVal());
+		    						player.sendMessage("Turret ammo type changed to " + pcs.getAmmoChangeAmmoTypeVal().toString());
+		    						plugin.playerCommanders.remove(pcs);
+		    					}
 	    					}
 	    				}
 	    			}

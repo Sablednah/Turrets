@@ -57,6 +57,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     private boolean playerControl = false;
     private TurretShooter shooter = null;
     private boolean isActive;
+	private Material unlimitedAmmoType = Material.ARROW;
     
     
     public EntityTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
@@ -310,43 +311,31 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     	if (this.getTurret().getUsesAmmoBox()) {
     		TurretAmmoBox ammoBox = this.getTurret().getTurretAmmoBox();
     		if (ammoBox.getAmmoChestNum() > 0) {
-    			for(Chest chest : ammoBox.getMap().values()) {
-    				if(chest.getInventory().contains(Material.ARROW)) {
+    			Material matToUse = null;
+    			for (Chest chest : ammoBox.getMap().values()) {
+    				if (matToUse!=null) break;
+    				List<Material> ammoTypes = this.getTurret().getPlugin().getBoxAmmoTypes();
+    				for(Material material : ammoTypes) {
+    					if(chest.getInventory().contains(material)) {
+    						matToUse = material;
+    						break;
+    					}
+    				}//NOW THE ONLY THING THAT DOESN'T WORK IS OTHER ITEMS BEING FIRED OTHER THAN AN ARROW
+    				if (matToUse!=null) {
     					ItemStack[] chestInv = chest.getInventory().getContents();
     					for (ItemStack item : chestInv) {
-    						if (item!=null && item.getType().equals(Material.ARROW)) {
-    							fireItemStack(new ItemStack(Material.ARROW,1),accuracy);
+    						if (item!=null && item.getType().equals(matToUse)) {
+    							if(item.getAmount()>1) item.setAmount(item.getAmount()-1);
+    							else chest.getInventory().remove(item);
+    							fireItemStack(new ItemStack(matToUse,1),accuracy);
+    							return;
     						}
     					}
     				}
     			}
-//    			Material matToUse = null;
-//    			for (Chest chest : ammoBox.getMap().values()) {
-//    				if (matToUse!=null) break;
-//    				for(Material material : this.getTurret().getPlugin().getAmmoTypes()) {
-//    					if(chest.getInventory().contains(material)) {
-//    						matToUse = material;
-//    						break;
-//    					}
-//    				}//********NOTE: THIS DOESN'T WORK. DOES NOT FIND ANY MATERIALS OR SOMETHING...***************
-//    				if (matToUse!=null) {
-//    					ItemStack[] chestInv = chest.getInventory().getContents();
-//    					for (ItemStack item : chestInv) {
-//    						if (item!=null && item.getType().equals(matToUse)) {
-//    							if (item.getAmount() > 1) {
-//    								item.setAmount(item.getAmount()-1);
-//    							} else {
-//    								item.setType(Material.AIR);
-//    							}
-//    							fireItemStack(new ItemStack(matToUse,1),accuracy);
-//    							break;
-//    						}
-//    					}
-//    				}
-//    			}
     		}
     	} else {
-	        ItemStack itemStack = new ItemStack(Material.ARROW,1);
+	        ItemStack itemStack = new ItemStack(this.unlimitedAmmoType,1);
 	        fireItemStack(itemStack,accuracy);
     	}
     }
@@ -513,5 +502,13 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 
 	public void setIsActive(boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public void setUnlimitedAmmoType(Material material) {
+		this.unlimitedAmmoType  = material;
+	}
+	
+	public Material getUnlimitedAmmoType() {
+		return this.unlimitedAmmoType;
 	}
 }

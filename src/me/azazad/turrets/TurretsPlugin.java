@@ -21,6 +21,8 @@ import me.azazad.turrets.persistence.YAMLTurretDatabase;
 import me.azazad.turrets.targeting.MobAssessor;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeLadder;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
@@ -55,7 +57,8 @@ public class TurretsPlugin extends JavaPlugin{
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
     private TurretDatabase turretDatabase;
-    private List<Material> ammoTypes = new ArrayList<Material>();
+    private List<Material> boxAmmoTypes = new ArrayList<Material>();
+    private List<Material> unlimitedAmmoTypes = new ArrayList<Material>();
     private final List<TargetAssessor> targetAssessors = new ArrayList<TargetAssessor>();
     private final Map<BlockLocation,Turret> turrets = new HashMap<BlockLocation,Turret>();
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
@@ -85,10 +88,9 @@ public class TurretsPlugin extends JavaPlugin{
         saveDefaultConfig();
         Configuration config = getConfig();
         upgradeLadder.loadUpgradeTiers(config,logger);
-        logger.warning("About to go into loadConfigOptions");
         loadConfigOptions(config,logger);
         loadAmmoTypes(config,logger);
-        logger.info("Upgrade tiers loaded.");
+        logger.info("Config file loaded.");
         
         //load providers
 //        ServicesManager servicesManager = server.getServicesManager();
@@ -149,25 +151,45 @@ public class TurretsPlugin extends JavaPlugin{
 		else config.set("pickupAmmoArrows",true);
     }
 	
-private void loadAmmoTypes(Configuration config, Logger logger) {
-		if(config.getConfigurationSection("boxAmmoTypes")==null) {
-			config.createSection("boxAmmoTypes");
-			config.set("boxAmmoTypes", "arrow");
+	private void loadAmmoTypes(Configuration config, Logger logger) {
+		if(config.get("boxAmmoTypes",null)==null) {
+			config.set("boxAmmoTypes", "arrow,snow_ball");
 		}
 		else {
-			String[] ammoTypesArr = config.get("boxAmmoTypes").toString().split(",");
+			String ammoTypesString = config.getString("boxAmmoTypes");
+			ammoTypesString = ammoTypesString.toLowerCase().replaceAll("\\s", "");
+			String[] ammoTypesArr = ammoTypesString.split(",");
 			for(String ammoType : ammoTypesArr) {
-				ammoType.toLowerCase();
-				ammoType.replace(" ", "");
-				if(ammoType.equals("arrow")) this.getAmmoTypes().add(Material.ARROW);
-				else if(ammoType.equals("snowball") || ammoType.equals("snow ball") || ammoType.equals("snow_ball")) this.getAmmoTypes().add(Material.SNOW_BALL);
-				else if(ammoType.equals("expbottle") || ammoType.equals("exp bottle") || ammoType.equals("exp_bottle")) this.getAmmoTypes().add(Material.EXP_BOTTLE);
-				else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) this.getAmmoTypes().add(Material.MONSTER_EGG);
-				else if(ammoType.equals("egg")) this.getAmmoTypes().add(Material.EGG);
-				else if(ammoType.equals("potion")) this.getAmmoTypes().add(Material.POTION);
-				else if(ammoType.equals("fireball") || ammoType.equals("fire ball") || ammoType.equals("fire_ball")) this.getAmmoTypes().add(Material.FIREBALL);
+				if(ammoType.equals("arrow")) this.getBoxAmmoTypes().add(Material.ARROW);
+				else if(ammoType.equals("snowball") || ammoType.equals("snow_ball")) this.getBoxAmmoTypes().add(Material.SNOW_BALL);
+				else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle")) this.getBoxAmmoTypes().add(Material.EXP_BOTTLE);
+				else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) this.getBoxAmmoTypes().add(Material.MONSTER_EGG);
+				else if(ammoType.equals("egg")) this.getBoxAmmoTypes().add(Material.EGG);
+				else if(ammoType.equals("potion")) this.getBoxAmmoTypes().add(Material.POTION);
+				else if(ammoType.equals("fireball") || ammoType.equals("fire_ball")) this.getBoxAmmoTypes().add(Material.FIREBALL);
 			}
 		}
+		if(config.get("unlimitedAmmoTypes",null)==null) {
+			config.set("unlimitedAmmoTypes", "arrow,snow_ball");
+		}
+		else {
+			String ammoTypesString = config.getString("unlimitedAmmoTypes");
+			ammoTypesString = ammoTypesString.toLowerCase().replaceAll("\\s", "");
+			String[] ammoTypesArr = ammoTypesString.split(",");
+			for(String ammoType : ammoTypesArr) {
+				if(ammoType.equals("arrow")) this.getUnlimitedAmmoTypes().add(Material.ARROW);
+				else if(ammoType.equals("snowball") || ammoType.equals("snow_ball")) this.getUnlimitedAmmoTypes().add(Material.SNOW_BALL);
+				else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle")) this.getUnlimitedAmmoTypes().add(Material.EXP_BOTTLE);
+				else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) this.getUnlimitedAmmoTypes().add(Material.MONSTER_EGG);
+				else if(ammoType.equals("egg")) this.getUnlimitedAmmoTypes().add(Material.EGG);
+				else if(ammoType.equals("potion")) this.getUnlimitedAmmoTypes().add(Material.POTION);
+				else if(ammoType.equals("fireball") || ammoType.equals("fire_ball")) this.getUnlimitedAmmoTypes().add(Material.FIREBALL);
+			}
+		}
+	}
+
+	public List<Material> getUnlimitedAmmoTypes() {
+		return this.unlimitedAmmoTypes;
 	}
 
 	@Override
@@ -325,7 +347,7 @@ private void loadAmmoTypes(Configuration config, Logger logger) {
 		return turret;
 	}
 
-	public List<Material> getAmmoTypes() {
-		return ammoTypes;
+	public List<Material> getBoxAmmoTypes() {
+		return boxAmmoTypes;
 	}
 }

@@ -1,7 +1,7 @@
 # General Plugin Information
 name: Turrets
 main: me.azazad.turrets.TurretsPlugin
-version: 0.1.7
+version: 0.1.8
 author: wristdirect
 database: false
 
@@ -21,6 +21,7 @@ permissions:
       turrets.addturret: true
       turrets.destroyturret: true
       turrets.manturret: true
+      turrets.setammousage: true
       turrets.setammotype: true
     turrets.activate: 
       description: Allows user to activate/deactivate turrets.

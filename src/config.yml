@@ -21,6 +21,7 @@ pickupAmmoArrows: true
 # Items listed first will be used first if possible, second second, etc.
 # Supported types are: arrow,egg,snow_ball,potion,exp_bottle,monster_egg,fireball
 boxAmmoTypes: arrow,snow_ball
+unlimitedAmmoTypes: arrow,snow_ball
 
 # Upgrade Tiers
 #
