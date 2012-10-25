@@ -21,8 +21,6 @@ import me.azazad.turrets.persistence.YAMLTurretDatabase;
 import me.azazad.turrets.targeting.MobAssessor;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeLadder;
-
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
@@ -45,14 +43,7 @@ public class TurretsPlugin extends JavaPlugin{
     public static final String PERM_ADMIN = "turrets.admin";
     
     public static Logger globalLogger;
-    public boolean activeOnCreate = true;
-    public boolean allowAllToMan = false;
-    public boolean allowAllToChangeAmmo = false;
-    public boolean allowAllToAddAmmoBox = false;
-    public boolean allowAllToDestroy = false;
-    public boolean allowAllToModActivate = false;
-    public boolean pickupUnlimArrows = false;
-    public boolean pickupAmmoArrows = true;
+    private Map<String,Boolean> configMap = new HashMap<String,Boolean>();
     
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
@@ -133,22 +124,21 @@ public class TurretsPlugin extends JavaPlugin{
 	private void loadConfigOptions(Configuration config, Logger logger) {
 		//TODO:Make this a general thing. It looks up all keys, ignores certain special ones (like 'tiers'), but for the rest
 		//looks up the default value for the else part.
-		if (config.get("activeOnCreate",null)!=null) this.activeOnCreate = config.getBoolean("activeOnCreate");
-		else config.set("activeOnCreate",true);
-		if (config.get("allowAllToMan",null)!=null) this.allowAllToMan = config.getBoolean("allowAllToMan");
-		else config.set("allowAllToMan",false);
-		if (config.get("allowAllToChangeAmmo",null)!=null) this.allowAllToChangeAmmo = config.getBoolean("allowAllToChangeAmmo");
-		else config.set("allowAllToChangeAmmo",false);
-		if (config.get("allowAllToAddAmmoBox",null)!=null) this.allowAllToAddAmmoBox = config.getBoolean("allowAllToAddAmmoBox");
-		else config.set("allowAllToAddAmmoBox",false);
-		if (config.get("allowAllToDestroy",null)!=null) this.allowAllToDestroy = config.getBoolean("allowAllToDestroy");
-		else config.set("allowAllToDestroy",false);
-		if (config.get("allowAllToModActivate",null)!=null) this.allowAllToModActivate = config.getBoolean("allowAllToModActivate");
-		else config.set("allowAllToModActivate",false);
-		if (config.get("pickupUnlimArrows",null)!=null) this.pickupUnlimArrows = config.getBoolean("pickupUnlimArrows");
-		else config.set("pickupUnlimArrows",false);
-		if (config.get("pickupAmmoArrows",null)!=null) this.pickupAmmoArrows = config.getBoolean("pickupAmmoArrows");
-		else config.set("pickupAmmoArrows",true);
+		configMap.put("activeOnCreate", true);
+		configMap.put("allowAllToMan", false);
+		configMap.put("allowAllToChangeAmmo", false);
+		configMap.put("allowAllToAddAmmoBox", false);
+		configMap.put("allowAllToDestroy", false);
+		configMap.put("allowAllToModActivate", false);
+		configMap.put("pickupUnlimArrows", false);
+		configMap.put("pickupAmmoArrows", true);
+		String configMapKey;
+		for(int i=0; i< configMap.size(); i++) {
+			configMapKey = configMap.keySet().toArray()[i].toString();
+			if(config.get(configMapKey,null)!=null){
+				configMap.put(configMapKey, config.getBoolean(configMapKey));
+			}
+		}
     }
 	
 	private void loadAmmoTypes(Configuration config, Logger logger) {
@@ -349,5 +339,9 @@ public class TurretsPlugin extends JavaPlugin{
 
 	public List<Material> getBoxAmmoTypes() {
 		return boxAmmoTypes;
+	}
+	
+	public Map<String, Boolean> getConfigMap() {
+		return this.configMap;
 	}
 }

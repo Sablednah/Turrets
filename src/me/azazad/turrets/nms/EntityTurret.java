@@ -21,8 +21,6 @@ import net.minecraft.server.EntityThrownExpBottle;
 import net.minecraft.server.ItemMonsterEgg;
 import net.minecraft.server.Vec3D;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Chest;
@@ -53,7 +51,6 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     //private double range = 10.0;
     //private float accuracy = 1.0f;//default 6.0f
     
-    private int turretLookMatchShooterCD = 10;
     private boolean playerControl = false;
     private TurretShooter shooter = null;
     private boolean isActive;
@@ -63,7 +60,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     public EntityTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
         super(((CraftWorld)world).getHandle());
         this.turret = turret;
-        this.setIsActive(this.turret.getPlugin().activeOnCreate);
+        this.setIsActive(this.turret.getPlugin().getConfigMap().get("activeOnCreate"));
         this.bukkitWorld = world;
         this.pivotX = pivotX;
         this.pivotY = pivotY;
@@ -360,9 +357,9 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             switch(itemStack.getType()){
                 case ARROW:
                     EntityArrow entityArrow = new EntityArrow(world,itemX,itemY,itemZ);
-                    if(this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().pickupAmmoArrows) 
+                    if(this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().getConfigMap().get("pickupAmmoArrows"))
                     	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
-                    if(!this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().pickupUnlimArrows)
+                    if(!this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().getConfigMap().get("pickupUnlimArrows"))
                     	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
                     entityArrow.shoot(factorX,factorY,factorZ,1.1f,accuracy);
                     entityArrow.fromPlayer = 1;

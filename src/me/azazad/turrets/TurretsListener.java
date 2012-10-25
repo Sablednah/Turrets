@@ -53,7 +53,7 @@ public class TurretsListener implements Listener{
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					Turret turret = plugin.getTurret(postLocation);
-	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.allowAllToAddAmmoBox) {
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.getConfigMap().get("allowAllToAddAmmoBox")) {
 		    					player.sendMessage("Next click a chest to link.");
 		    					pcs.setTurretSelected(turret);
 		    					pcs.setTurretCreationStep(2);
@@ -112,7 +112,7 @@ public class TurretsListener implements Listener{
 	    					player.sendMessage("Turret ammo modified.");
 	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
 	    					Turret turret = pcs.getTurretSelected();
-	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToChangeAmmo)) {
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToChangeAmmo"))) {
 		    					turret.setUsesAmmoBox(!pcs.getUnlimAmmoCommanded());
 		    					plugin.playerCommanders.remove(pcs);
 	    					}
@@ -130,7 +130,7 @@ public class TurretsListener implements Listener{
 //	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
 //	    					Turret turret = pcs.getTurretSelected();
 	    					Turret turret = plugin.getTurret(postLocation);
-	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToModActivate)) {
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToModActivate"))) {
 	    						turret.getEntity().setIsActive(true);
 		    					plugin.playerCommanders.remove(pcs);
 	    					}
@@ -145,7 +145,7 @@ public class TurretsListener implements Listener{
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					Turret turret = plugin.getTurret(postLocation);
-	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.allowAllToModActivate)) {
+	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToModActivate"))) {
 		    					turret.getEntity().setIsActive(false);
 		    					plugin.playerCommanders.remove(pcs);
 		    					player.sendMessage("Turret deactivated.");
@@ -214,7 +214,7 @@ public class TurretsListener implements Listener{
     			Player rider = (Player) event.getEntered();
     			if(rider.hasPermission("turrets.manturret")) {
 	    			Turret turret = plugin.getTurret(turretLoc);
-	    			if (rider.isOp() || turret.getOwnerName().equals(rider.getName()) || plugin.allowAllToMan) {
+	    			if (rider.isOp() || turret.getOwnerName().equals(rider.getName()) || plugin.getConfigMap().get("allowAllToMan")) {
 		    			TurretShooter shooter = new TurretShooter(rider);
 		    			turret.getEntity().attachShooter(shooter);
 	    			}
@@ -255,7 +255,7 @@ public class TurretsListener implements Listener{
                         Player player = (Player)attacker;
                         
                         if(player.hasPermission("turrets.removeturret")) {
-	                        if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.allowAllToDestroy) {
+	                        if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.getConfigMap().get("allowAllToDestroy")) {
 		                        plugin.removeTurret(turret);
 		                        plugin.notifyPlayer(player,TurretsMessage.TURRET_DESTROYED);
 		                        return;
