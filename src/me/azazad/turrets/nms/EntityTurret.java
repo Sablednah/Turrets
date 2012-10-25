@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.List;
 import me.azazad.turrets.Turret;
 import me.azazad.turrets.TurretAmmoBox;
-import me.azazad.turrets.TurretShooter;
 import me.azazad.turrets.targeting.TargetAssessment;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
@@ -51,16 +50,10 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     //private double range = 10.0;
     //private float accuracy = 1.0f;//default 6.0f
     
-    private boolean playerControl = false;
-    private TurretShooter shooter = null;
-    private boolean isActive;
-	private Material unlimitedAmmoType = Material.ARROW;
-    
-    
     public EntityTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
         super(((CraftWorld)world).getHandle());
         this.turret = turret;
-        this.setIsActive(this.turret.getPlugin().getConfigMap().get("activeOnCreate"));
+        this.getTurret().setIsActive(this.turret.getPlugin().getConfigMap().get("activeOnCreate"));
         this.bukkitWorld = world;
         this.pivotX = pivotX;
         this.pivotY = pivotY;
@@ -122,7 +115,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         double range = upgradeTier.getRange();
         float accuracy = upgradeTier.getAccuracy();
         boolean lockedOn = false;
-        if(this.getIsActive()) {
+        if(this.getTurret().getIsActive()) {
 	        //if(!getPlayerControl()) {
         	if(true) {
 	        	//If not currently targeting an entity, find a suitable one
@@ -196,12 +189,12 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 	        
 	        this.b(this.yaw,this.pitch);
 	        //**************************Firing check*******************************/
-		    if(getPlayerControl()) {
+		    if(this.getTurret().getPlayerControl()) {
 		    	//check if shooter tried to shoot since last cooldown
-		    	if(shooter.didShooterClick() && firingCooldown == 0) {
+		    	if(this.getTurret().getShooter().didShooterClick() && firingCooldown == 0) {
 		    		fireItemStack(accuracy);
 		    		firingCooldown = firingInterval*4/5;
-		    		shooter.setClickedFlag(false);
+		    		this.getTurret().getShooter().setClickedFlag(false);
 		    	}
 		    } else {
 		    	//Fire item if locked onto target
@@ -332,7 +325,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     			}
     		}
     	} else {
-	        ItemStack itemStack = new ItemStack(this.unlimitedAmmoType,1);
+	        ItemStack itemStack = new ItemStack(this.turret.getUnlimitedAmmoType(),1);
 	        fireItemStack(itemStack,accuracy);
     	}
     }
@@ -455,28 +448,6 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         return this.world.rayTrace(Vec3D.a().create(this.locX,this.locY + this.getHeadHeight(),this.locZ),Vec3D.a().create(nmsEntity.locX,nmsEntity.locY + nmsEntity.getHeadHeight(),nmsEntity.locZ),false,false) == null;
     }
     
-    private void setPlayerControl(boolean state) {
-    	this.playerControl = state;
-    }
-    
-    public boolean getPlayerControl() {
-    	return(this.playerControl);
-    }
-    
-    public void attachShooter(TurretShooter shooter) {
-    	this.shooter = shooter;
-    	setPlayerControl(true);
-    }
-    
-    public void detachShooter() {
-    	this.shooter = null;
-    	setPlayerControl(false);
-    }
-    
-    public TurretShooter getShooter() {
-    	return(this.shooter);
-    }
-    
     public float getPitch() {
     	return(this.pitch);
     }
@@ -492,20 +463,4 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     public void setYaw(float yaw) {
     	this.yaw = yaw;
     }
-
-	public boolean getIsActive() {
-		return isActive;
-	}
-
-	public void setIsActive(boolean isActive) {
-		this.isActive = isActive;
-	}
-
-	public void setUnlimitedAmmoType(Material material) {
-		this.unlimitedAmmoType  = material;
-	}
-	
-	public Material getUnlimitedAmmoType() {
-		return this.unlimitedAmmoType;
-	}
 }

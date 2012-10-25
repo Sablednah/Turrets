@@ -21,6 +21,10 @@ public class Turret{
     private EntityTurret entity;
     private UpgradeTier upgradeTier;
     private TurretAmmoBox turretAmmoBox;
+    private boolean playerControl = false;
+    private TurretShooter shooter = null;
+    private boolean isActive;
+	private Material unlimitedAmmoType = Material.ARROW;
     
     public Turret(BlockLocation location,Player owner,TurretsPlugin plugin){
         this(location,owner.getName(),plugin);
@@ -145,5 +149,43 @@ public class Turret{
 
 	public TurretsPlugin getPlugin() {
 		return plugin;
+	}
+	
+	private void setPlayerControl(boolean state) {
+    	this.playerControl = state;
+    }
+    
+    public boolean getPlayerControl() {
+    	return(this.playerControl);
+    }
+    
+    public void attachShooter(TurretShooter shooter) {
+    	this.shooter = shooter;
+    	setPlayerControl(true);
+    }
+    
+    public void detachShooter() {
+    	this.shooter = null;
+    	setPlayerControl(false);
+    }
+    
+    public TurretShooter getShooter() {
+    	return(this.shooter);
+    }
+    
+    public boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	public void setUnlimitedAmmoType(Material material) {
+		this.unlimitedAmmoType  = material;
+	}
+	
+	public Material getUnlimitedAmmoType() {
+		return this.unlimitedAmmoType;
 	}
 }

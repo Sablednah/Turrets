@@ -131,7 +131,7 @@ public class TurretsListener implements Listener{
 //	    					Turret turret = pcs.getTurretSelected();
 	    					Turret turret = plugin.getTurret(postLocation);
 	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToModActivate"))) {
-	    						turret.getEntity().setIsActive(true);
+	    						turret.setIsActive(true);
 		    					plugin.playerCommanders.remove(pcs);
 	    					}
 	    				}
@@ -146,7 +146,7 @@ public class TurretsListener implements Listener{
 	    				if(!plugin.canBuildTurret(postLocation)) {
 	    					Turret turret = plugin.getTurret(postLocation);
 	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToModActivate"))) {
-		    					turret.getEntity().setIsActive(false);
+		    					turret.setIsActive(false);
 		    					plugin.playerCommanders.remove(pcs);
 		    					player.sendMessage("Turret deactivated.");
 	    					}
@@ -163,7 +163,7 @@ public class TurretsListener implements Listener{
 	    					Turret turret = plugin.getTurret(postLocation);
 	    					if(!turret.getUsesAmmoBox()) {
 		    					if(player.isOp() || turret.getOwnerName().equals(player.getName())) {
-		    						turret.getEntity().setUnlimitedAmmoType(pcs.getAmmoChangeAmmoTypeVal());
+		    						turret.setUnlimitedAmmoType(pcs.getAmmoChangeAmmoTypeVal());
 		    						player.sendMessage("Turret ammo type changed to " + pcs.getAmmoChangeAmmoTypeVal().toString());
 		    						plugin.playerCommanders.remove(pcs);
 		    					}
@@ -202,7 +202,7 @@ public class TurretsListener implements Listener{
     @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerAnimation(PlayerAnimationEvent event) {
     	if (plugin.getTurret(event.getPlayer())!=null) {//if player is shooter of turret
-			plugin.getTurret(event.getPlayer()).getEntity().getShooter().setClickedFlag(true);
+			plugin.getTurret(event.getPlayer()).getShooter().setClickedFlag(true);
     	}
     }
     
@@ -216,7 +216,7 @@ public class TurretsListener implements Listener{
 	    			Turret turret = plugin.getTurret(turretLoc);
 	    			if (rider.isOp() || turret.getOwnerName().equals(rider.getName()) || plugin.getConfigMap().get("allowAllToMan")) {
 		    			TurretShooter shooter = new TurretShooter(rider);
-		    			turret.getEntity().attachShooter(shooter);
+		    			turret.attachShooter(shooter);
 	    			}
     			}
     		}
@@ -230,7 +230,7 @@ public class TurretsListener implements Listener{
     		if ((event.getExited() instanceof Player) && !plugin.canBuildTurret(turretLoc)) {
     			//Player rider = (Player) event.getExited();
     			Turret turret = plugin.getTurret(turretLoc);
-    			turret.getEntity().detachShooter();
+    			turret.detachShooter();
     		}
     	}
     }
@@ -399,7 +399,7 @@ public class TurretsListener implements Listener{
     public void onPlayerDeath(PlayerDeathEvent event) {
     	if(plugin.getTurret(event.getEntity())!=null) {
     		Turret turret = plugin.getTurret(event.getEntity());
-    		turret.getEntity().detachShooter();
+    		turret.detachShooter();
     	}
     }
 }

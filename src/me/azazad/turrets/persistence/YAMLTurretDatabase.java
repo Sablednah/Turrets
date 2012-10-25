@@ -74,7 +74,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
             		turret.getTurretAmmoBox().addAmmoChest(chestLocation.getLocation().getBlock());
             	}
             }
-            if(!turret.getUsesAmmoBox()) turret.getEntity().setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
+            if(!turret.getUsesAmmoBox()) turret.setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
         }
         
         return turrets;
@@ -109,7 +109,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
             String shooterName = turretSection.getString(RELOAD_SHOOTER_PATH);
             if (shooterName!=null && Bukkit.getPlayer(shooterName)!=null) {
             	TurretShooter shooter = new TurretShooter(Bukkit.getPlayer(shooterName));
-            	turret.getEntity().attachShooter(shooter);
+            	turret.attachShooter(shooter);
             	turret.getEntity().getBukkitEntity().setPassenger(Bukkit.getPlayer(shooterName));
             }
             if (turretSection.getKeys(false).contains(AMMO_BOX_PATH)) {
@@ -121,7 +121,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
             		turret.getTurretAmmoBox().addAmmoChest(chestLocation.getLocation().getBlock());
             	}
             }
-            if(!turret.getUsesAmmoBox()) turret.getEntity().setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
+            if(!turret.getUsesAmmoBox()) turret.setUnlimitedAmmoType(Material.getMaterial(turretSection.getString(UNLIM_AMMO_TYPE)));
         }
     }
     
@@ -141,7 +141,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
 	            	chestid++;
 	        	}
 	        }
-	        if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getEntity().getUnlimitedAmmoType().toString());
+	        if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getUnlimitedAmmoType().toString());
             id++;
         }
         
@@ -157,8 +157,8 @@ public class YAMLTurretDatabase implements TurretDatabase{
             turret.getLocation().saveToConfigSection(turretSection,LOCATION_PATH);
             turretSection.set(OWNER_PATH,turret.getOwnerName());
             turretSection.set(USES_AMMO_PATH, turret.getUsesAmmoBox());
-            if (turret.getEntity().getShooter()!=null) {
-            	turretSection.set(RELOAD_SHOOTER_PATH, turret.getEntity().getShooter().getPlayer().getName());
+            if (turret.getShooter()!=null) {
+            	turretSection.set(RELOAD_SHOOTER_PATH, turret.getShooter().getPlayer().getName());
             }
             if (turret.getTurretAmmoBox().getAmmoChestNum() > 0) {
 	        	int chestid = 0;
@@ -167,7 +167,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
 	            	chestid++;
 	        	}
 	        }
-            if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getEntity().getUnlimitedAmmoType().toString());
+            if(!turret.getUsesAmmoBox()) turretSection.set(UNLIM_AMMO_TYPE, turret.getUnlimitedAmmoType().toString());
             id++;
         }
         backing.save(file);

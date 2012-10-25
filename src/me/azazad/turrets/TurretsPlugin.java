@@ -222,8 +222,8 @@ public class TurretsPlugin extends JavaPlugin{
     public Turret getTurret(Player p) {
     	Turret turret = null;
     	for (Turret cur_turr : turrets.values()) {
-    		if (cur_turr.getEntity().getShooter()!=null) {
-	    		if (cur_turr.getEntity().getShooter().getPlayer().equals(p)) {
+    		if (cur_turr.getShooter()!=null) {
+	    		if (cur_turr.getShooter().getPlayer().equals(p)) {
 	    			turret = cur_turr;
 	    			break;
 	    		}
