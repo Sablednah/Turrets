@@ -43,7 +43,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
     @Override
     public Collection<Turret> loadTurrets() throws IOException{
         if(!file.exists()){
-        	TurretsPlugin.globalLogger.info("!!!File doesn't exist!!!");
+        	file.getParentFile().mkdirs();
         }
         
         try{
@@ -143,7 +143,7 @@ public class YAMLTurretDatabase implements TurretDatabase{
         int id = 0;
         for(Turret turret : turrets){
         	TurretOwner turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(turret.getOwnerName()));
-            turretOwner.removeTurretOwned(turret);
+            if(turretOwner!=null) turretOwner.removeTurretOwned(turret);
             ConfigurationSection turretSection = turretSections.createSection("t"+id);
             turret.getLocation().saveToConfigSection(turretSection,LOCATION_PATH);
             turretSection.set(OWNER_PATH,turret.getOwnerName());

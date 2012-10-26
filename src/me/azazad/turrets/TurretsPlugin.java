@@ -84,20 +84,6 @@ public class TurretsPlugin extends JavaPlugin{
         loadAmmoTypes(config,logger);
         logger.info("Config file loaded.");
         
-        //load providers
-//        ServicesManager servicesManager = server.getServicesManager();
-//        
-//        RegisteredServiceProvider<Permission> permissionsRSP = servicesManager.getRegistration(Permission.class);
-//        if(permissionsRSP != null){
-//            permissionsProvider = permissionsRSP.getProvider();
-//        }
-//        
-//        if(permissionsProvider == null){
-//            logger.severe("Failed to integrate with Vault. Are you sure it is installed correctly? Disabling this plugin.");
-//            pluginManager.disablePlugin(this);
-//            return;
-//        }
-        
         //register listeners
         pluginManager.registerEvents(new TurretsListener(this),this);
         
@@ -275,7 +261,9 @@ public class TurretsPlugin extends JavaPlugin{
     }
     
     public void loadAndSpawnTurrets() throws IOException{
-        Collection<Turret> dbTurrets = turretDatabase.loadTurrets();
+    	Collection<Turret> dbTurrets=null;
+    	try{dbTurrets = turretDatabase.loadTurrets();}
+        catch(IOException e){};
         if(dbTurrets == null){
             return;
         }
