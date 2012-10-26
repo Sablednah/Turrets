@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class TurretsCommand implements CommandExecutor{
@@ -179,13 +180,13 @@ public class TurretsCommand implements CommandExecutor{
         				if(args.length==2) {
         					String ammoType = args[1];
         					Material matToUse = null;
-        					if(ammoType.equals("arrow")) matToUse = Material.ARROW;
-        					else if(ammoType.equals("snowball") || ammoType.equals("snow_ball")) matToUse = Material.SNOW_BALL;
-        					else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle")) matToUse = Material.EXP_BOTTLE;
-        					else if(ammoType.equals("monsteregg") || ammoType.equals("monster egg") || ammoType.equals("monster_egg")) matToUse = Material.MONSTER_EGG;
-        					else if(ammoType.equals("egg")) matToUse = Material.EGG;
-        					else if(ammoType.equals("potion")) matToUse = Material.POTION;
-        					else if(ammoType.equals("fireball") || ammoType.equals("fire_ball")) matToUse = Material.FIREBALL;
+        					if(ammoType.equals("arrow") || ammoType.equals("arrows")) matToUse = Material.ARROW;
+        					else if(ammoType.equals("snowball") || ammoType.equals("snow_ball") || ammoType.equals("snowballs") || ammoType.equals("snow_balls")) matToUse = Material.SNOW_BALL;
+        					else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle") || ammoType.equals("expbottles") || ammoType.equals("exp_bottles")) matToUse = Material.EXP_BOTTLE;
+        					else if(ammoType.equals("monsteregg") || ammoType.equals("monster_egg") || ammoType.equals("monstereggs") || ammoType.equals("monster_eggs")) matToUse = Material.MONSTER_EGG;
+        					else if(ammoType.equals("egg") || ammoType.equals("eggs")) matToUse = Material.EGG;
+        					else if(ammoType.equals("potion") || ammoType.equals("potions")) matToUse = Material.POTION;
+        					else if(ammoType.equals("fireball") || ammoType.equals("fire_ball") || ammoType.equals("fireballs") || ammoType.equals("fire_balls")) matToUse = Material.FIREBALL;
         					
         					if(matToUse!=null && plugin.getUnlimitedAmmoTypes().contains(matToUse)) {
         						if(plugin.getPlayerCommander(player) == null) {
@@ -202,34 +203,36 @@ public class TurretsCommand implements CommandExecutor{
         		return true;
         	} else if(subcommand.equals("config")) {
         		if(args.length==3) {
-        			String subcmd1 = args[1].toLowerCase();
-        			if(subcmd1.equals("addunlimammotype")) {
-        				
-        			}else if(subcmd1.equals("removeunlimammotype")) {
-        				
-        			}else if(subcmd1.equals("addboxammotype")) {
-        				
-        			}else if(subcmd1.equals("removeboxammotype")) {
-        				
-        			} else {
-	        			String cmdConfigKey = args[1];
-	        			Set<String> configKeys = plugin.getConfigMap().keySet();
-	        			boolean foundConfigKey = false;
-	        			for(String configKey : configKeys) {
-	        				if(cmdConfigKey.equalsIgnoreCase(configKey)) {
-	        					if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")) {
-		        					boolean cmdConfigVal = Boolean.parseBoolean(args[2]);
-		        					plugin.getConfigMap().put(configKey, cmdConfigVal);
-		        					plugin.getConfig().set(configKey, cmdConfigVal);
-		        					sender.sendMessage("Set config " + configKey + " to " + cmdConfigVal);
-		        					foundConfigKey = true;
-	        					} else sender.sendMessage("Must use true or false for the config parameter value.");
-	        					break;
-	        				}
-	        			}
-	        			if(!foundConfigKey) {
-	        				sender.sendMessage("Could not find config parameter " + args[1]);
-	        				sender.sendMessage(ChatColor.RED + "Example usage: /turrets config allowAllToDestroy true");
+        			if (sender.hasPermission("turrets.config") || sender instanceof ConsoleCommandSender) {
+	        			String subcmd1 = args[1].toLowerCase();
+	        			if(subcmd1.equals("addunlimammotype")) {
+	        				
+	        			}else if(subcmd1.equals("removeunlimammotype")) {
+	        				
+	        			}else if(subcmd1.equals("addboxammotype")) {
+	        				
+	        			}else if(subcmd1.equals("removeboxammotype")) {
+	        				
+	        			} else {
+		        			String cmdConfigKey = args[1];
+		        			Set<String> configKeys = plugin.getConfigMap().keySet();
+		        			boolean foundConfigKey = false;
+		        			for(String configKey : configKeys) {
+		        				if(cmdConfigKey.equalsIgnoreCase(configKey)) {
+		        					if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")) {
+			        					boolean cmdConfigVal = Boolean.parseBoolean(args[2]);
+			        					plugin.getConfigMap().put(configKey, cmdConfigVal);
+			        					plugin.getConfig().set(configKey, cmdConfigVal);
+			        					sender.sendMessage("Set config " + configKey + " to " + cmdConfigVal);
+			        					foundConfigKey = true;
+		        					} else sender.sendMessage("Must use true or false for the config parameter value.");
+		        					break;
+		        				}
+		        			}
+		        			if(!foundConfigKey) {
+		        				sender.sendMessage("Could not find config parameter " + args[1]);
+		        				sender.sendMessage(ChatColor.RED + "Example usage: /turrets config allowAllToDestroy true");
+		        			}
 	        			}
         			}
         		}else sender.sendMessage(ChatColor.RED + "That configuration command doesn't exist!");

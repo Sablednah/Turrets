@@ -1,7 +1,7 @@
 # General Plugin Information
 name: Turrets
 main: me.azazad.turrets.TurretsPlugin
-version: 0.1.8
+version: 0.1.9
 author: wristdirect
 database: false
 
@@ -23,6 +23,7 @@ permissions:
       turrets.setammousage: true
       turrets.setammotype: true
       turrets.ignoremaxturrets: true
+      turrets.config: true
       turrets.loadsave: true
     turrets.activate: 
       description: Allows user to activate/deactivate turrets.
@@ -44,6 +45,9 @@ permissions:
       default: op
     turrets.ignoremaxturrets: 
       description: Allows user to ignore the maxTurretsPerPlayer config setting.
+      default: op
+    turrets.config: 
+      description: Allows user to change config options in-game.
       default: op
     turrets.loadsave.*:
       description: Gives access to loading and saving commands.
