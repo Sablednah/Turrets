@@ -29,12 +29,13 @@ public class TurretsCommand implements CommandExecutor{
             //note: this command gets hung. doesn't work
             if(subcommand.equals("setammousage")) {
             	if(sender instanceof Player) {
-            		if(((Player)sender).hasPermission("turrets.setammousage")) {
+            		Player player = (Player) sender;
+            		if((player).hasPermission("turrets.setammousage")) {
 		            	if (args.length==2) {
 		            		String subcommand1 = args[1].toLowerCase();
 		            		if (subcommand1.equals("unlimited")) {
 		            			if(plugin.getPlayerCommander((Player) sender)==null) {
-		    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
+		    	            		PlayerCommandSender pcs = new PlayerCommandSender(player);
 		                			plugin.playerCommanders.add(pcs);
 		                			pcs.getPlayer().sendMessage("Click turret to set to unlimited ammo.");
 		                			pcs.setUnlimAmmoCommanded(true);
@@ -42,16 +43,36 @@ public class TurretsCommand implements CommandExecutor{
 		                			pcs.setLockedState(true);
 		    	            	}
 		            		} else if (subcommand1.equals("useammobox")) {
-		            			if(plugin.getPlayerCommander((Player) sender)==null) {
-		    	            		PlayerCommandSender pcs = new PlayerCommandSender((Player) sender);
+		            			if(plugin.getPlayerCommander(player)==null) {
+		    	            		PlayerCommandSender pcs = new PlayerCommandSender(player);
 		                			plugin.playerCommanders.add(pcs);
 		                			pcs.getPlayer().sendMessage("Click turret to set to use its ammo box.");
 		                			pcs.setUnlimAmmoCommanded(false);
 		                			pcs.setTurretAmmoUsageStep(1);
 		                			pcs.setLockedState(true);
 		    	            	}
-		            		} else sender.sendMessage("Correct usage: /turrets setAmmoUsage unlimited/useAmmoBox");
-		            	} else sender.sendMessage("Correct usage: /turrets setAmmoUsage unlimited/useAmmoBox");
+		            		} else sender.sendMessage("Correct usage: /turrets setAmmoUsage <unlimited/useAmmoBox> [all]");
+		            	} else if(args.length==3) {
+		            		String subcommand1 = args[1].toLowerCase();
+		            		String subcommand2 = args[2].toLowerCase();
+		            		if (subcommand1.equals("unlimited") && subcommand2.equals("all")) {
+		            			if(plugin.getTurretOwners().get(player)!=null) {
+		            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		            				for(Turret turret : turretOwner.getTurretsOwned()) {
+		            					turret.setUsesAmmoBox(false);
+		            				}
+		            				player.sendMessage("All turrets set to unlimited ammo.");
+		            			} else player.sendMessage("You have no turrets!");
+		            		} else if (subcommand1.equals("useammobox") && subcommand2.equals("all")) {
+		            			if(plugin.getTurretOwners().get(player)!=null) {
+		            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		            				for(Turret turret : turretOwner.getTurretsOwned()) {
+		            					turret.setUsesAmmoBox(true);
+		            				}
+		            				player.sendMessage("All turrets set to use ammo.");
+		            			} else player.sendMessage("You have no turrets!");
+		            		} else sender.sendMessage("Correct usage: /turrets setAmmoUsage <unlimited/useAmmoBox> [all]");
+		            	} else sender.sendMessage("Correct usage: /turrets setAmmoUsage <unlimited/useAmmoBox> [all]");
             		} else sender.sendMessage("You don't have permission to do that!");
             	} else sender.sendMessage("Only players can set turret ammo type of turret.");
             	return true;

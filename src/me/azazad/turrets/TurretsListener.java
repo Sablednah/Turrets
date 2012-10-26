@@ -113,12 +113,14 @@ public class TurretsListener implements Listener{
 	    			if(TurretsPlugin.POST_MATERIALS.contains(clickedBlock.getType())) {
 	    				BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	    				if(!plugin.canBuildTurret(postLocation)) {
-	    					player.sendMessage("Turret ammo modified.");
-	    					pcs.setTurretSelected(plugin.getTurret(postLocation));
-	    					Turret turret = pcs.getTurretSelected();
-	    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToChangeAmmo"))) {
-		    					turret.setUsesAmmoBox(!pcs.getUnlimAmmoCommanded());
-		    					plugin.playerCommanders.remove(pcs);
+	    					if(player.hasPermission("turrets.setammousage")) {
+	    						pcs.setTurretSelected(plugin.getTurret(postLocation));
+		    					Turret turret = pcs.getTurretSelected();
+		    					if(player.isOp() || turret.getOwnerName().equals(player.getName()) || (plugin.getConfigMap().get("allowAllToChangeAmmo"))) {
+		    						player.sendMessage("Turret ammo modified.");
+		    						turret.setUsesAmmoBox(!pcs.getUnlimAmmoCommanded());
+			    					plugin.playerCommanders.remove(pcs);
+		    					}
 	    					}
 	    				}
 	    			}
