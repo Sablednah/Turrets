@@ -21,6 +21,9 @@ import me.azazad.turrets.persistence.YAMLTurretDatabase;
 import me.azazad.turrets.targeting.MobAssessor;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeLadder;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
@@ -34,13 +37,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
-    //public static final Material POST_MATERIAL = Material.FENCE;
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
-    
-    public static final String PERM_TURRET_CREATE = "turrets.create";
-    public static final String PERM_TURRET_DESTROY = "turrets.destroy";
-    public static final String PERM_ADMIN = "turrets.admin";
     
     public static Logger globalLogger;
     private Map<String,Boolean> configMap = new HashMap<String,Boolean>();
@@ -52,7 +50,9 @@ public class TurretsPlugin extends JavaPlugin{
     private List<Material> unlimitedAmmoTypes = new ArrayList<Material>();
     private final List<TargetAssessor> targetAssessors = new ArrayList<TargetAssessor>();
     private final Map<BlockLocation,Turret> turrets = new HashMap<BlockLocation,Turret>();
+    private final Map<Player,TurretOwner> turretOwners = new HashMap<Player,TurretOwner>();
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
+    private int maxTurretsPerPlayer;
     
 //    private Permission permissionsProvider;
     
@@ -66,6 +66,7 @@ public class TurretsPlugin extends JavaPlugin{
     	
         pdf = getDescription();
         turretDatabase = new YAMLTurretDatabase(new File(getDataFolder(),TURRET_DB_FILENAME),this);
+        
     }
     
     @Override
@@ -121,9 +122,20 @@ public class TurretsPlugin extends JavaPlugin{
         
     }
 
+	@Override
+    public void onDisable(){
+        Logger logger = getLogger();
+        
+        try{
+            despawnAndSaveTurrets();
+            logger.info("Despawned and saved turrets.");
+        }catch(IOException e){
+            logger.log(Level.SEVERE,"Failed to save turrets",e);
+        }
+        this.saveConfig();
+    }
+	
 	private void loadConfigOptions(Configuration config, Logger logger) {
-		//TODO:Make this a general thing. It looks up all keys, ignores certain special ones (like 'tiers'), but for the rest
-		//looks up the default value for the else part.
 		configMap.put("activeOnCreate", true);
 		configMap.put("allowAllToMan", false);
 		configMap.put("allowAllToChangeAmmo", false);
@@ -138,6 +150,11 @@ public class TurretsPlugin extends JavaPlugin{
 			if(config.get(configMapKey,null)!=null){
 				configMap.put(configMapKey, config.getBoolean(configMapKey));
 			}
+		}
+		if(config.get("maxTurretsPerPlayer",null)!=null) this.setMaxTurretsPerPlayer(config.getInt("maxTurretsPerPlayer"));
+		else{
+			config.set("maxTurretsPerPlayer", 12);
+			logger.warning("Couldn't find maxTurretsPerPlayer. Setting to default: 12");
 		}
     }
 	
@@ -181,19 +198,6 @@ public class TurretsPlugin extends JavaPlugin{
 	public List<Material> getUnlimitedAmmoTypes() {
 		return this.unlimitedAmmoTypes;
 	}
-
-	@Override
-    public void onDisable(){
-        Logger logger = getLogger();
-        
-        try{
-            despawnAndSaveTurrets();
-            logger.info("Despawned and saved turrets.");
-        }catch(IOException e){
-            logger.log(Level.SEVERE,"Failed to save turrets",e);
-        }
-        this.saveConfig();
-    }
     
     public UpgradeLadder getUpgradeLadder(){
         return upgradeLadder;
@@ -343,5 +347,48 @@ public class TurretsPlugin extends JavaPlugin{
 	
 	public Map<String, Boolean> getConfigMap() {
 		return this.configMap;
+	}
+
+	public int getMaxTurretsPerPlayer() {
+		return maxTurretsPerPlayer;
+	}
+
+	public void setMaxTurretsPerPlayer(int maxTurretsPerPlayer) {
+		this.maxTurretsPerPlayer = maxTurretsPerPlayer;
+	}
+	
+	public Map<Player,TurretOwner> getTurretOwners() {
+		return this.turretOwners;
+	}
+	
+	public void reloadPlugin() {
+		globalLogger = getLogger();
+        Logger logger = getLogger();
+		try{
+            despawnAndSaveTurrets();
+            logger.info("Despawned and saved turrets.");
+        }catch(IOException e){
+            logger.log(Level.SEVERE,"Failed to save turrets",e);
+        }
+        this.saveConfig();
+        
+        //load configuration
+        saveDefaultConfig();
+        Configuration config = getConfig();
+        upgradeLadder.loadUpgradeTiers(config,logger);
+        loadConfigOptions(config,logger);
+        loadAmmoTypes(config,logger);
+        logger.info("Config file loaded.");
+        
+        //load turrets
+        try{
+            loadAndSpawnTurrets();
+            logger.info("Turrets loaded and spawned.");
+        }catch(IOException e){
+            logger.log(Level.SEVERE,"Failed to load turrets",e);
+        }
+        
+        logger.info("Total number of turrets: "+turrets.size());
+        Bukkit.broadcastMessage(ChatColor.YELLOW + "Reloaded "+ ChatColor.GRAY + getDescription().getFullName());
 	}
 }

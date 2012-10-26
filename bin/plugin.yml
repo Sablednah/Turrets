@@ -16,13 +16,14 @@ permissions:
     description: Gives access to all Turrets permissions.
     children:
       turrets.activate: true
-      turrets.loadsave: true
       turrets.reload: true
       turrets.addturret: true
       turrets.destroyturret: true
       turrets.manturret: true
       turrets.setammousage: true
       turrets.setammotype: true
+      turrets.ignoremaxturrets: true
+      turrets.loadsave: true
     turrets.activate: 
       description: Allows user to activate/deactivate turrets.
       default: true
@@ -35,8 +36,14 @@ permissions:
     turrets.manturret:
       description: Allows user to man a turret.
       default: true
+      turrets.setammousage: 
+      description: Allows user to change the ammo usage of a turret.
+      default: op
     turrets.setammotype:
       description: Allows user to change ammo type of a turret.
+      default: op
+    turrets.ignoremaxturrets: 
+      description: Allows user to ignore the maxTurretsPerPlayer config setting.
       default: op
     turrets.loadsave.*:
       description: Gives access to loading and saving commands.

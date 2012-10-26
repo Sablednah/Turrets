@@ -23,6 +23,9 @@ pickupAmmoArrows: true
 boxAmmoTypes: arrow,snow_ball
 unlimitedAmmoTypes: arrow,snow_ball
 
+# Max turrets per player: Sets the maximum number of turrets a player can have. The permission turrets.ignoremaxturrets can override this.
+maxTurretsPerPlayer: 12
+
 # Upgrade Tiers
 #
 # Names of tiers must be placeable blocks, except for "default" (chosen if the block under a turret's post matches none of the rest)

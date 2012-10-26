@@ -1,5 +1,7 @@
 package me.azazad.turrets;
 
+import java.util.Collection;
+
 import me.azazad.turrets.nms.EntityTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
@@ -26,7 +28,9 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
@@ -182,15 +186,23 @@ public class TurretsListener implements Listener{
                 if(player.hasPermission("turrets.addturret")) {
 	                BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	                if(plugin.canBuildTurret(postLocation)){
-	                    Turret turret = new Turret(postLocation,player,plugin);
-	                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
-	                    else {
-	                    	itemInHand.setAmount(itemInHand.getAmount()-1);
-	                    	player.setItemInHand(itemInHand);
-	                    }
-	                    player.updateInventory();
-	                    plugin.addTurret(turret);
-	                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
+	                	TurretOwner turretOwner = null;
+	                	if(!plugin.getTurretOwners().containsKey(player)) {
+	                		turretOwner = new TurretOwner(player,plugin);
+	                		plugin.getTurretOwners().put(player, turretOwner);
+	                	} else turretOwner = plugin.getTurretOwners().get(player);
+	                	if((turretOwner.getNumTurretsOwned() < turretOwner.getMaxTurretsAllowed()) || player.hasPermission("turrets.ignoremaxturrets")) {
+		                    Turret turret = new Turret(postLocation,player,plugin);
+		                    turretOwner.addTurretOwned(turret);
+		                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
+		                    else {
+		                    	itemInHand.setAmount(itemInHand.getAmount()-1);
+		                    	player.setItemInHand(itemInHand);
+		                    }
+		                    player.updateInventory();
+		                    plugin.addTurret(turret);
+		                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
+	                	} else player.sendMessage("You are already at your maximum number of turrets!");
 	                }else{
 	                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
 	                }
@@ -254,14 +266,16 @@ public class TurretsListener implements Listener{
                     if(attacker instanceof Player){
                         Player player = (Player)attacker;
                         
-                        if(player.hasPermission("turrets.removeturret")) {
+                        if(player.hasPermission("turrets.destroyturret")) {
 	                        if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.getConfigMap().get("allowAllToDestroy")) {
-		                        plugin.removeTurret(turret);
+		                        TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		                        turretOwner.removeTurretOwned(turret);
+	                        	plugin.removeTurret(turret);
 		                        plugin.notifyPlayer(player,TurretsMessage.TURRET_DESTROYED);
 		                        return;
 	                        }
                         }
-                        plugin.notifyPlayer(player,TurretsMessage.NO_DESTROY_PERM);
+                        player.sendMessage("You do not have permission to destroy this turret!");
                         event.setCancelled(true);
                         return;
                         
@@ -271,6 +285,24 @@ public class TurretsListener implements Listener{
                 }
             }
         }
+    }
+    
+    @EventHandler
+    public void onPlayerLogin(PlayerLoginEvent event) {
+    	Player player = event.getPlayer();
+    	Collection<Turret> turretList = plugin.getTurrets();
+    	TurretOwner turretOwner = new TurretOwner(player,plugin);
+		plugin.getTurretOwners().put(player, turretOwner);
+    	for(Turret turret : turretList) {
+    		if(turret.getOwnerName().equals(player.getName())) {
+    			turretOwner.addTurretOwned(turret);
+    		}
+    	}
+    }
+    
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+    	plugin.getTurretOwners().remove(event.getPlayer());
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

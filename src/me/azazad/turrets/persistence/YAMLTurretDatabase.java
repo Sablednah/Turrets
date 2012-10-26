@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.turrets.Turret;
+import me.azazad.turrets.TurretOwner;
 import me.azazad.turrets.TurretShooter;
 import me.azazad.turrets.TurretsPlugin;
 
@@ -18,6 +19,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
 public class YAMLTurretDatabase implements TurretDatabase{
     private static final String TURRETS_PATH = "turrets";
@@ -63,6 +65,11 @@ public class YAMLTurretDatabase implements TurretDatabase{
             String ownerName = turretSection.getString(OWNER_PATH);
             Turret turret = new Turret(location,ownerName,plugin);
             turrets.add(turret);
+            Player ownerPlayer = Bukkit.getServer().getPlayer(turret.getOwnerName());
+            if(!plugin.getTurretOwners().containsKey(ownerPlayer)) {
+            	plugin.getTurretOwners().put(ownerPlayer, new TurretOwner(ownerPlayer, plugin));
+            }
+            plugin.getTurretOwners().get(ownerPlayer).addTurretOwned(turret);
         	turret.setUsesAmmoBox(turretSection.getBoolean(USES_AMMO_PATH));
             //if there is an ammobox for this turret
             if (turretSection.getKeys(false).contains(AMMO_BOX_PATH)) {
@@ -105,6 +112,11 @@ public class YAMLTurretDatabase implements TurretDatabase{
             String ownerName = turretSection.getString(OWNER_PATH);
             Turret turret = new Turret(location,ownerName,plugin);
             turrets.add(turret);
+            Player ownerPlayer = Bukkit.getServer().getPlayer(turret.getOwnerName());
+            if(!plugin.getTurretOwners().containsKey(ownerPlayer)) {
+            	plugin.getTurretOwners().put(ownerPlayer, new TurretOwner(ownerPlayer, plugin));
+            }
+            plugin.getTurretOwners().get(ownerPlayer).addTurretOwned(turret);
             turret.setUsesAmmoBox(turretSection.getBoolean(USES_AMMO_PATH));
             String shooterName = turretSection.getString(RELOAD_SHOOTER_PATH);
             if (shooterName!=null && Bukkit.getPlayer(shooterName)!=null) {
@@ -130,6 +142,8 @@ public class YAMLTurretDatabase implements TurretDatabase{
         ConfigurationSection turretSections = backing.createSection(TURRETS_PATH);
         int id = 0;
         for(Turret turret : turrets){
+        	TurretOwner turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(turret.getOwnerName()));
+            turretOwner.removeTurretOwned(turret);
             ConfigurationSection turretSection = turretSections.createSection("t"+id);
             turret.getLocation().saveToConfigSection(turretSection,LOCATION_PATH);
             turretSection.set(OWNER_PATH,turret.getOwnerName());

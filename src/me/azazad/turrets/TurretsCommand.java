@@ -1,11 +1,10 @@
 package me.azazad.turrets;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.logging.Level;
 
 import me.azazad.bukkit.util.PlayerCommandSender;
-import me.azazad.bukkit.util.Reload;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -120,18 +119,10 @@ public class TurretsCommand implements CommandExecutor{
             	if (sender instanceof Player) {
             		if (sender.hasPermission("turrets.loadsave.reload")){
             		// TODO: check for permissions
-	            		try {
-							Reload.turretsReload(sender, plugin);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+						plugin.reloadPlugin();
             		}
             	}else{
-            		try {
-						Reload.turretsReload(sender, plugin);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+            		plugin.reloadPlugin();
             	}
             	return(true);
         	}else if(subcommand.equals("activate")){
@@ -187,6 +178,40 @@ public class TurretsCommand implements CommandExecutor{
         				} else player.sendMessage("Example usage: /turrets setAmmoType fireball");
         			} else player.sendMessage(ChatColor.RED + "You don't have permission to change turret's ammo type!");
         		} else sender.sendMessage(ChatColor.RED + "Only a player can change a turret's ammo type!");
+        		return true;
+        	} else if(subcommand.equals("config")) {
+        		if(args.length==3) {
+        			String subcmd1 = args[1].toLowerCase();
+        			if(subcmd1.equals("addunlimammotype")) {
+        				
+        			}else if(subcmd1.equals("removeunlimammotype")) {
+        				
+        			}else if(subcmd1.equals("addboxammotype")) {
+        				
+        			}else if(subcmd1.equals("removeboxammotype")) {
+        				
+        			} else {
+	        			String cmdConfigKey = args[1];
+	        			Set<String> configKeys = plugin.getConfigMap().keySet();
+	        			boolean foundConfigKey = false;
+	        			for(String configKey : configKeys) {
+	        				if(cmdConfigKey.equalsIgnoreCase(configKey)) {
+	        					if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")) {
+		        					boolean cmdConfigVal = Boolean.parseBoolean(args[2]);
+		        					plugin.getConfigMap().put(configKey, cmdConfigVal);
+		        					plugin.getConfig().set(configKey, cmdConfigVal);
+		        					sender.sendMessage("Set config " + configKey + " to " + cmdConfigVal);
+		        					foundConfigKey = true;
+	        					} else sender.sendMessage("Must use true or false for the config parameter value.");
+	        					break;
+	        				}
+	        			}
+	        			if(!foundConfigKey) {
+	        				sender.sendMessage("Could not find config parameter " + args[1]);
+	        				sender.sendMessage(ChatColor.RED + "Example usage: /turrets config allowAllToDestroy true");
+	        			}
+        			}
+        		}else sender.sendMessage(ChatColor.RED + "That configuration command doesn't exist!");
         		return true;
         	}else{
                 sender.sendMessage(subcommand+" is not a Turrets command.");

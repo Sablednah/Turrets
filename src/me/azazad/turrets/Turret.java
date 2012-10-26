@@ -6,6 +6,7 @@ import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -25,6 +26,7 @@ public class Turret{
     private TurretShooter shooter = null;
     private boolean isActive;
 	private Material unlimitedAmmoType = Material.ARROW;
+	private TurretOwner turretOwner;
     
     public Turret(BlockLocation location,Player owner,TurretsPlugin plugin){
         this(location,owner.getName(),plugin);
@@ -33,6 +35,7 @@ public class Turret{
     public Turret(BlockLocation location,String ownerName,TurretsPlugin plugin){
         this.location = location;
         this.ownerName = ownerName;
+        this.turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(ownerName));
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
         this.usesAmmoBox = true;
@@ -187,5 +190,9 @@ public class Turret{
 	
 	public Material getUnlimitedAmmoType() {
 		return this.unlimitedAmmoType;
+	}
+	
+	public TurretOwner getTurretOwner() {
+		return this.turretOwner;
 	}
 }
