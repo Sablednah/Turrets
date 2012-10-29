@@ -18,6 +18,7 @@ import net.minecraft.server.EntitySmallFireball;
 import net.minecraft.server.EntitySnowball;
 import net.minecraft.server.EntityThrownExpBottle;
 import net.minecraft.server.ItemMonsterEgg;
+import net.minecraft.server.ItemPotion;
 import net.minecraft.server.Vec3D;
 
 import org.bukkit.Material;
@@ -82,7 +83,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     }
     
     @Override
-    public void h_(){
+    public void j_(){
         if(this.j() > 0){
             this.h(this.j() - 1);
         }
@@ -188,6 +189,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 	        
 	        
 	        this.b(this.yaw,this.pitch);
+	        this.motY = 0;
 	        //**************************Firing check*******************************/
 		    if(this.getTurret().getPlayerControl()) {
 		    	//check if shooter tried to shoot since last cooldown
@@ -362,22 +364,24 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
                     
                 case EGG:
                     EntityEgg entityEgg = new EntityEgg(world,itemX,itemY,itemZ);
-                    entityEgg.c(factorX,factorY,factorZ,1.1f,accuracy);
+                    entityEgg.shoot(factorX,factorY,factorZ,1.1f,accuracy);
                     world.addEntity(entityEgg);
                     world.triggerEffect(1002,blockX,blockY,blockZ,0);
                     break;
                     
                 case SNOW_BALL:
                     EntitySnowball entitySnowball = new EntitySnowball(world,itemX,itemY,itemZ);
-                    entitySnowball.c(factorX,factorY,factorZ,1.1f,accuracy);
+                    entitySnowball.shoot(factorX,factorY,factorZ,1.1f,accuracy);
                     world.addEntity(entitySnowball);
                     world.triggerEffect(1002,blockX,blockY,blockZ,0);
                     break;
                     
                 case POTION:
                     if(Potion.fromItemStack(itemStack).isSplash()){
-                        EntityPotion entityPotion = new EntityPotion(world,itemX,itemY,itemZ,itemStack.getDurability());
-                        entityPotion.c(factorX,factorY,factorZ,1.375f,accuracy * 0.5f);
+                    	ItemPotion nmsItemPotion = new net.minecraft.server.ItemPotion(itemStack.getDurability());
+                    	net.minecraft.server.ItemStack nmsItemStack = new net.minecraft.server.ItemStack(nmsItemPotion);
+                        EntityPotion entityPotion = new EntityPotion(world,itemX,itemY,itemZ,nmsItemStack);
+                        entityPotion.shoot(factorX,factorY,factorZ,1.375f,accuracy * 0.5f);
                         world.addEntity(entityPotion);
                         world.triggerEffect(1002,blockX,blockY,blockZ,0);
                     }else{
@@ -387,7 +391,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
                     
                 case EXP_BOTTLE:
                     EntityThrownExpBottle entityThrownEXPBottle = new EntityThrownExpBottle(world,itemX,itemY,itemZ);
-                    entityThrownEXPBottle.c(factorX,factorY,factorZ,1.375f,accuracy * 0.5f);
+                    entityThrownEXPBottle.shoot(factorX,factorY,factorZ,1.375f,accuracy * 0.5f);
                     world.addEntity(entityThrownEXPBottle);
                     world.triggerEffect(1002,blockX,blockY,blockZ,0);
                     break;
@@ -445,7 +449,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     
     //TODO: cache results of this method
     private boolean canSee(net.minecraft.server.Entity nmsEntity){
-        return this.world.rayTrace(Vec3D.a().create(this.locX,this.locY + this.getHeadHeight(),this.locZ),Vec3D.a().create(nmsEntity.locX,nmsEntity.locY + nmsEntity.getHeadHeight(),nmsEntity.locZ),false,false) == null;
+        return this.world.rayTrace(Vec3D.a(this.locX,this.locY + this.getHeadHeight(),this.locZ),Vec3D.a(nmsEntity.locX,nmsEntity.locY + nmsEntity.getHeadHeight(),nmsEntity.locZ),false,false) == null;
     }
     
     public float getPitch() {

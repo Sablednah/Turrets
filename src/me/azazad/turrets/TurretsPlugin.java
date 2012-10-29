@@ -37,6 +37,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
+    private static final String OWNER_DB_FILENAME = "ownerWhitelists.yml";
+    private static File ownerWhitelistsFile;
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
     
@@ -83,6 +85,8 @@ public class TurretsPlugin extends JavaPlugin{
         loadConfigOptions(config,logger);
         loadAmmoTypes(config,logger);
         logger.info("Config file loaded.");
+        
+        //load owner whitelists
         
         //register listeners
         pluginManager.registerEvents(new TurretsListener(this),this);
