@@ -4,14 +4,19 @@
 package me.azazad.turrets;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import me.azazad.bukkit.util.BlockLocation;
@@ -28,6 +33,9 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
@@ -38,9 +46,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
     private static final String OWNER_DB_FILENAME = "ownerWhitelists.yml";
-    private static File ownerWhitelistsFile;
+    private static FileConfiguration ownerWBlists;
+    private static File ownerWBlistsFile = null;
+    private static Map<String, OwnerWBlists> ownerWBlistsMap = new HashMap<String, OwnerWBlists>();
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
+    
+    public Set<String> globalWhitelist;
+    public Set<String> globalBlacklist;
     
     public static Logger globalLogger;
     private Map<String,Boolean> configMap = new HashMap<String,Boolean>();
@@ -87,6 +100,11 @@ public class TurretsPlugin extends JavaPlugin{
         logger.info("Config file loaded.");
         
         //load owner whitelists
+        ownerWBlistsFile = new File(getDataFolder(), OWNER_DB_FILENAME);
+		firstRun();
+		ownerWBlists = new YamlConfiguration();
+		loadYamls();
+		loadWBLists();
         
         //register listeners
         pluginManager.registerEvents(new TurretsListener(this),this);
@@ -122,30 +140,8 @@ public class TurretsPlugin extends JavaPlugin{
         }catch(IOException e){
             logger.log(Level.SEVERE,"Failed to save turrets",e);
         }
+        saveYamls();
         this.saveConfig();
-    }
-	
-	private void loadConfigOptions(Configuration config, Logger logger) {
-		configMap.put("activeOnCreate", true);
-		configMap.put("allowAllToMan", false);
-		configMap.put("allowAllToChangeAmmo", false);
-		configMap.put("allowAllToAddAmmoBox", false);
-		configMap.put("allowAllToDestroy", false);
-		configMap.put("allowAllToModActivate", false);
-		configMap.put("pickupUnlimArrows", false);
-		configMap.put("pickupAmmoArrows", true);
-		String configMapKey;
-		for(int i=0; i< configMap.size(); i++) {
-			configMapKey = configMap.keySet().toArray()[i].toString();
-			if(config.get(configMapKey,null)!=null){
-				configMap.put(configMapKey, config.getBoolean(configMapKey));
-			}
-		}
-		if(config.get("maxTurretsPerPlayer",null)!=null) this.setMaxTurretsPerPlayer(config.getInt("maxTurretsPerPlayer"));
-		else{
-			config.set("maxTurretsPerPlayer", 12);
-			logger.warning("Couldn't find maxTurretsPerPlayer. Setting to default: 12");
-		}
     }
 	
 	private void loadAmmoTypes(Configuration config, Logger logger) {
@@ -382,5 +378,104 @@ public class TurretsPlugin extends JavaPlugin{
         
         logger.info("Total number of turrets: "+turrets.size());
         Bukkit.broadcastMessage(ChatColor.YELLOW + "Reloaded "+ ChatColor.GRAY + getDescription().getFullName());
+	}
+	
+	private void firstRun() {
+		if(!ownerWBlistsFile.exists()){
+			ownerWBlistsFile.getParentFile().mkdirs();
+	        copy(getResource(OWNER_DB_FILENAME), ownerWBlistsFile);
+	    }
+	}
+	
+	private void copy(InputStream in, File file) {
+	    try {
+	        OutputStream out = new FileOutputStream(file);
+	        byte[] buf = new byte[1024];
+	        int len;
+	        while((len=in.read(buf))>0){
+	            out.write(buf,0,len);
+	        }
+	        out.close();
+	        in.close();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void saveYamls() {
+	    try {
+	    	ownerWBlists.save(ownerWBlistsFile);
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	public void loadYamls() {
+	    try {
+	    	ownerWBlists.load(ownerWBlistsFile);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	private void loadWBLists() {
+		Set<String> ownerList = ownerWBlists.getKeys(false);
+		for(String owner : ownerList) {
+			ConfigurationSection ownerConfig = ownerWBlists.getConfigurationSection(owner);
+			Set<String> whitelistUserSet = new HashSet<String>();
+			Set<String> blacklistUserSet = new HashSet<String>();
+			String[] listUsers;
+			String bigUserString = ownerConfig.getString("whitelist.users");
+			if(bigUserString!=null) {
+				listUsers = bigUserString.replaceAll("\\s", "").split(",");
+				for(String whitelistUser : listUsers) whitelistUserSet.add(whitelistUser);
+			}
+			
+			bigUserString = ownerConfig.getString("blacklist.users");
+			if(bigUserString!=null) {
+				listUsers = bigUserString.replaceAll("\\s","").split(",");
+				for(String blacklistUser : listUsers){
+					if(!whitelistUserSet.contains(blacklistUser)) blacklistUserSet.add(blacklistUser);
+					else {
+						this.getLogger().warning(blacklistUser + " found in both white and blacklist. Removing from both!");
+						whitelistUserSet.remove(blacklistUser);
+					}
+				}
+			}
+			OwnerWBlists ownerWBlist = new OwnerWBlists(owner, whitelistUserSet, blacklistUserSet);
+			ownerWBlistsMap.put(owner, ownerWBlist);
+			if(owner.equals("global")) {
+				globalWhitelist = whitelistUserSet;
+				globalBlacklist = blacklistUserSet;
+			}
+		}
+	}
+	
+	private void loadConfigOptions(Configuration config, Logger logger) {
+		configMap.put("activeOnCreate", true);
+		configMap.put("allowAllToMan", false);
+		configMap.put("allowAllToChangeAmmo", false);
+		configMap.put("allowAllToAddAmmoBox", false);
+		configMap.put("allowAllToDestroy", false);
+		configMap.put("allowAllToModActivate", false);
+		configMap.put("pickupUnlimArrows", false);
+		configMap.put("pickupAmmoArrows", true);
+		configMap.put("attackNonlistPlayers", false);
+		String configMapKey;	
+		for(int i=0; i< configMap.size(); i++) {
+			configMapKey = configMap.keySet().toArray()[i].toString();
+			if(config.get(configMapKey,null)!=null){
+				configMap.put(configMapKey, config.getBoolean(configMapKey));
+			}else config.set(configMapKey, configMap.get(configMapKey));
+		}
+		if(config.get("maxTurretsPerPlayer",null)!=null) this.setMaxTurretsPerPlayer(config.getInt("maxTurretsPerPlayer"));
+		else{
+			config.set("maxTurretsPerPlayer", 12);
+			logger.warning("Couldn't find maxTurretsPerPlayer. Setting to default: 12");
+		}
+    }
+	
+	public OwnerWBlists getOwnerWBlists(String ownerKey) {
+		return ownerWBlistsMap.get(ownerKey);
 	}
 }

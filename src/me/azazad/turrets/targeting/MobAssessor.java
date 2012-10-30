@@ -8,6 +8,8 @@ public class MobAssessor implements TargetAssessor{
     public TargetAssessment assessMob(LivingEntity mob){
         if(MobAlignment.isHostile(mob)){
             return TargetAssessment.HOSTILE;
+        }else if(MobAlignment.isEither(mob)){
+        	return TargetAssessment.EITHER;
         }else{
             return TargetAssessment.MEH;
         }

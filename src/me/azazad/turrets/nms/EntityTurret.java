@@ -29,6 +29,7 @@ import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.Potion;
@@ -234,7 +235,6 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         List<net.minecraft.server.Entity> nmsEntities = world.getEntities(this,this.boundingBox.grow(range,range,range));
         List<LivingEntity> targets = new ArrayList<LivingEntity>();
         double rangeSquared = range * range;
-        
         for(net.minecraft.server.Entity nmsEntity : nmsEntities){
             if(nmsEntity == this){
                 continue;
@@ -278,7 +278,29 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         while(it.hasNext()){
             LivingEntity mob = it.next();
             TargetAssessment assessment = assessTarget(mob);
-            
+            //TODO: check if default is to attack nonlist players or not, set assessment to that
+            //Then, check for player on the opposing list (if nonlist = attack, check whitelist)
+            //Lastly, regardless of all other things, do a separate if else for the global list
+            if(assessment == TargetAssessment.EITHER) {
+            	if(mob instanceof Player) {
+            		Player playerTarget = (Player) mob;
+	            	boolean default_attack = this.getTurret().getPlugin().getConfigMap().get("attackNonlistPlayers");
+	            	//this.getTurret().getPlugin().getLogger().info("def_att = " + Boolean.toString(default_attack));
+	            	boolean PW = this.getTurret().getWBlists().isPlayerInWhitelist(playerTarget.getName());
+	            	//this.getTurret().getPlugin().getLogger().info("PW = " + Boolean.toString(PW));
+	            	boolean PB = this.getTurret().getWBlists().isPlayerInBlacklist(playerTarget.getName());
+	            	//this.getTurret().getPlugin().getLogger().info("PB = " + Boolean.toString(PB));
+	            	boolean GW = this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName());
+	            	//this.getTurret().getPlugin().getLogger().info("GW = " + Boolean.toString(GW));
+	            	boolean GB = this.getTurret().getPlugin().globalBlacklist.contains(playerTarget.getName());
+	            	//this.getTurret().getPlugin().getLogger().info("GB = " + Boolean.toString(GB));
+	            	//Sorry for how obscure this is...used a truth table on paper :P
+	            	boolean isHostileTarget = (!GW&&GB) || (!GW&&!GB&&!PW&&PB) || (!GW&&!GB&&!PW&&!PB&&default_attack);
+	            	if(isHostileTarget) assessment = TargetAssessment.HOSTILE;
+	            	else assessment = TargetAssessment.NOT_HOSTILE;
+            	}
+            	else assessment = TargetAssessment.NOT_HOSTILE;
+            }
             if(assessment != TargetAssessment.HOSTILE){
                 it.remove();
             }

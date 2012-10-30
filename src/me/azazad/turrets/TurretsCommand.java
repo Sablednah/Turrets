@@ -237,7 +237,82 @@ public class TurretsCommand implements CommandExecutor{
         			}
         		}else sender.sendMessage(ChatColor.RED + "That configuration command doesn't exist!");
         		return true;
-        	}else{
+        	}else if(subcommand.equals("whitelist")) {
+        		if(args.length==3) {
+        			if(sender instanceof Player) {
+        			//TODO:Don't forget to check for permissions!!
+        				OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.toString());
+	        			if(args[1].equalsIgnoreCase("add")) {
+	        				if(ownerList.isPlayerInBlacklist(args[2])) {
+	        					ownerList.removePlayerFromBlacklist(args[2]);
+	        					sender.sendMessage(args[2] + " removed from your blacklist.");
+	        				}
+	        				if(!ownerList.isPlayerInWhitelist(args[2])) {
+	        					ownerList.addPlayerToWhitelist(args[2]);
+	        					sender.sendMessage(args[2] + " added to your whitelist.");
+	        				}
+	        				else sender.sendMessage(ChatColor.RED + args[2] + " is already on your whitelist!");
+	        			}else if(args[1].equalsIgnoreCase("remove")) {
+	        				if(ownerList.isPlayerInWhitelist(args[2])) {
+	        					ownerList.removePlayerFromWhitelist(args[2]);
+	        					sender.sendMessage(args[2] + " removed from your whitelist.");
+	        				} else sender.sendMessage(ChatColor.RED + args[2] + " not on your whitelist!");
+	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur whitelist add <USERNAME>");
+        			}
+        		}else if(args.length==4) {
+        			//TODO:player adding or removing from another player's whitelist
+        			
+        		}
+        		return true;
+        	}else if(subcommand.equals("blacklist")) {
+        		if(args.length==3) {
+        			if(sender instanceof Player) {
+	        			//player adding or removing from their blacklist
+	        			OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.toString());
+	        			if(args[1].equalsIgnoreCase("add")) {
+	        				if(ownerList.isPlayerInWhitelist(args[2])) {
+	        					ownerList.removePlayerFromWhitelist(args[2]);
+	        					sender.sendMessage(args[2] + " removed from your whitelist.");
+	        				}
+	        				if(!ownerList.isPlayerInBlacklist(args[2])) {
+	        					ownerList.addPlayerToBlacklist(args[2]);
+	        					sender.sendMessage(args[2] + " added to your blacklist.");
+	        				}
+	        				else sender.sendMessage(ChatColor.RED + args[2] + " is already on your blacklist!");
+	        			}else if(args[1].equalsIgnoreCase("remove")) {
+	        				if(ownerList.isPlayerInBlacklist(args[2])) {
+	        					ownerList.removePlayerFromBlacklist(args[2]);
+	        					sender.sendMessage(args[2] + " removed from your blacklist.");
+	        				} else sender.sendMessage(ChatColor.RED + args[2] + " not on your blacklist!");
+	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur blacklist add <USERNAME>");
+        			}
+        		}else if(args.length==4) {
+        			//TODO:player adding or removing from another player's blacklist
+        			
+        		}
+        		return true;
+        	}else if(subcommand.equals("gwhitelist")) {
+        		if(args.length==3) {
+        			//TODO:player adding or removing from global whitelist
+        			if(args[1].equalsIgnoreCase("add")) {
+        				
+        			}else if(args[1].equalsIgnoreCase("remove")) {
+        				
+        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur gwhitelist add <USERNAME>");
+        		}
+        		return true;
+        	}else if(subcommand.equals("gblacklist")) {
+        		if(args.length==3) {
+        			//TODO:player adding or removing from global blacklist
+        			if(args[1].equalsIgnoreCase("add")) {
+        				
+        			}else if(args[1].equalsIgnoreCase("remove")) {
+        				
+        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur gblacklist add <USERNAME>");
+        		}
+        		return true;
+        	}//TODO: Make a command to delete someone's whitelist/blacklist entry. For manual garbage collection in WBlist file.
+        	else{
                 sender.sendMessage(subcommand+" is not a Turrets command.");
                 return true;
             }

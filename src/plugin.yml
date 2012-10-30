@@ -24,6 +24,9 @@ permissions:
       turrets.setammotype: true
       turrets.ignoremaxturrets: true
       turrets.config: true
+      turrets.modwblists: true
+      turrets.modotherwblists: true
+      turrets.modgloballists: true
       turrets.loadsave: true
     turrets.activate: 
       description: Allows user to activate/deactivate turrets.
@@ -48,6 +51,15 @@ permissions:
       default: op
     turrets.config: 
       description: Allows user to change config options in-game.
+      default: op
+    turrets.modwblists:
+      description: If true, allows user to modify their own whitelist and blacklist for their turrets.
+      default: true
+    turrets.modotherwblists:
+      description: If true, allows user to modify others' whitelists and blacklists.
+      default: op
+    turrets.modgloballists:
+      description: If true, allows user to modify the global whitelist and blacklist.
       default: op
     turrets.loadsave.*:
       description: Gives access to loading and saving commands.

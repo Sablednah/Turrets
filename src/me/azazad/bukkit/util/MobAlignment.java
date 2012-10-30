@@ -6,7 +6,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
 public enum MobAlignment{
-    PASSIVE,NEUTRAL,HOSTILE;
+    PASSIVE,NEUTRAL,HOSTILE,EITHER;
     
     private static final Map<EntityType,MobAlignment> alignments;
     
@@ -34,7 +34,19 @@ public enum MobAlignment{
         return getAlignment(type) == HOSTILE;
     }
     
-    static{
+    public static boolean isEither(Entity entity) {
+    	if(entity!=null) {
+    		return isEither(entity.getType());
+    	}else{
+    		return false;
+    	}
+    }
+    
+    private static boolean isEither(EntityType type) {
+		return getAlignment(type) == EITHER;
+	}
+
+	static{
         alignments = new EnumMap<EntityType,MobAlignment>(EntityType.class);
         alignments.put(EntityType.BLAZE,HOSTILE);
         alignments.put(EntityType.CAVE_SPIDER,HOSTILE);
@@ -51,7 +63,7 @@ public enum MobAlignment{
         alignments.put(EntityType.OCELOT,NEUTRAL);
         alignments.put(EntityType.PIG,PASSIVE);
         alignments.put(EntityType.PIG_ZOMBIE,NEUTRAL);
-        alignments.put(EntityType.PLAYER,NEUTRAL);
+        alignments.put(EntityType.PLAYER,EITHER);
         alignments.put(EntityType.SHEEP,PASSIVE);
         alignments.put(EntityType.SILVERFISH,HOSTILE);
         alignments.put(EntityType.SKELETON,HOSTILE);

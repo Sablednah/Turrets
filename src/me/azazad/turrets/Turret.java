@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class Turret{
-	public boolean TESTING_GITHUB;
 	private boolean usesAmmoBox;
     private final BlockLocation location;
     private String ownerName;
@@ -27,6 +26,7 @@ public class Turret{
     private boolean isActive;
 	private Material unlimitedAmmoType = Material.ARROW;
 	private TurretOwner turretOwner;
+	private OwnerWBlists ownerWBlists;
     
     public Turret(BlockLocation location,Player owner,TurretsPlugin plugin){
         this(location,owner.getName(),plugin);
@@ -39,6 +39,7 @@ public class Turret{
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
         this.usesAmmoBox = true;
+        this.ownerWBlists = plugin.getOwnerWBlists(ownerName);
         this.entity = new EntityTurret(this,location.getWorld(),location.getX() + 0.5,location.getY() + 1.3,location.getZ() + 0.5);
         initializeUpgradeTier();
     }
@@ -194,5 +195,9 @@ public class Turret{
 	
 	public TurretOwner getTurretOwner() {
 		return this.turretOwner;
+	}
+	
+	public OwnerWBlists getWBlists() {
+		return this.ownerWBlists;
 	}
 }

@@ -1,0 +1,10 @@
+global:
+  whitelist: 
+    users: wristdirect, MentuMad
+  blacklist: 
+    users: livingdarkness
+wristdirect:
+  whitelist: 
+    users: livingdarkness
+  blacklist: 
+    users: MentuMad

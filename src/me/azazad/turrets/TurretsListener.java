@@ -47,6 +47,8 @@ public class TurretsListener implements Listener{
 	@EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event){
         //Turret creation
+    	//TODO: If player successfully sets up a turret, initiate a WBlist for them.
+    	//This is better than doing this for every player who logs on, as you'll end up with craploads of empty sections
     	if(plugin.getPlayerCommander(event.getPlayer())!=null) {
     		PlayerCommandSender pcs = plugin.getPlayerCommander(event.getPlayer());
 	    	if(pcs.getTurretCreationStep()== 1 && pcs.getLockedState()) {
@@ -257,8 +259,8 @@ public class TurretsListener implements Listener{
         if(entity instanceof Minecart){
             Minecart minecart = (Minecart)entity;
             EntityMinecart nmsMinecart = ((CraftMinecart)minecart).getHandle();
-            
             if(nmsMinecart instanceof EntityTurret){
+            
                 EntityTurret nmsTurret = (EntityTurret)nmsMinecart;
                 Turret turret = nmsTurret.getTurret();
                 

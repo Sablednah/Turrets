@@ -8,6 +8,7 @@
 # allowAllToModActivate: True allows all players (with permissions) to activate/deactivate anyone's turrets.
 # pickupUnlimArrows: True allows players to pick up arrows shot by turrets with unlimited ammo.
 # pickupAmmoArrows: True allows players to pick up arrows shot by turrets using ammo boxes.
+# attackNonlistPlayers: True means turrets will attack players who are not on any of its white or blacklists.
 activeOnCreate: true
 allowAllToMan: false
 allowAllToChangeAmmo: false
@@ -16,6 +17,7 @@ allowAllToDestroy: false
 allowAllToModActivate: false
 pickupUnlimArrows: false
 pickupAmmoArrows: true
+attackNonlistPlayers: true;
 
 # Box Ammo types: List of all ammo types used by turrets from ammo boxes, separated by commas
 # Items listed first will be used first if possible, second second, etc.
