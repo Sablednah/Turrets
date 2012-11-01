@@ -45,10 +45,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
-    private static final String OWNER_DB_FILENAME = "ownerWhitelists.yml";
+    private static final String OWNER_DB_FILENAME = "ownerWBlists.yml";
     private static FileConfiguration ownerWBlists;
     private static File ownerWBlistsFile = null;
-    private static Map<String, OwnerWBlists> ownerWBlistsMap = new HashMap<String, OwnerWBlists>();
+    private Map<String, OwnerWBlists> ownerWBlistsMap = new HashMap<String, OwnerWBlists>();
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
     
@@ -116,6 +116,7 @@ public class TurretsPlugin extends JavaPlugin{
         POST_MATERIALS.add(Material.FENCE);
         POST_MATERIALS.add(Material.IRON_FENCE);
         POST_MATERIALS.add(Material.NETHER_FENCE);
+        POST_MATERIALS.add(Material.COBBLE_WALL);
         
         
         //load turrets
@@ -140,10 +141,11 @@ public class TurretsPlugin extends JavaPlugin{
         }catch(IOException e){
             logger.log(Level.SEVERE,"Failed to save turrets",e);
         }
+        saveWBlists();
         saveYamls();
         this.saveConfig();
     }
-	
+
 	private void loadAmmoTypes(Configuration config, Logger logger) {
 		if(config.get("boxAmmoTypes",null)==null) {
 			config.set("boxAmmoTypes", "arrow,snow_ball");
@@ -427,13 +429,13 @@ public class TurretsPlugin extends JavaPlugin{
 			String[] listUsers;
 			String bigUserString = ownerConfig.getString("whitelist.users");
 			if(bigUserString!=null) {
-				listUsers = bigUserString.replaceAll("\\s", "").split(",");
+				listUsers = bigUserString.toLowerCase().replaceAll("\\s", "").split(",");
 				for(String whitelistUser : listUsers) whitelistUserSet.add(whitelistUser);
 			}
 			
 			bigUserString = ownerConfig.getString("blacklist.users");
 			if(bigUserString!=null) {
-				listUsers = bigUserString.replaceAll("\\s","").split(",");
+				listUsers = bigUserString.toLowerCase().replaceAll("\\s","").split(",");
 				for(String blacklistUser : listUsers){
 					if(!whitelistUserSet.contains(blacklistUser)) blacklistUserSet.add(blacklistUser);
 					else {
@@ -448,6 +450,36 @@ public class TurretsPlugin extends JavaPlugin{
 				globalWhitelist = whitelistUserSet;
 				globalBlacklist = blacklistUserSet;
 			}
+		}
+	}
+	
+	private void saveWBlists() {
+		Set<String> ownerList = ownerWBlistsMap.keySet();
+		Set<String> whitelistUserSet;
+		Set<String> blacklistUserSet;
+		for(String owner : ownerList) {
+			ConfigurationSection ownerConfig = ownerWBlists.createSection(owner);
+			whitelistUserSet = ownerWBlistsMap.get(owner).getWhitelist();
+			blacklistUserSet = ownerWBlistsMap.get(owner).getBlacklist();
+			String whitelistUserString = "";
+			String blacklistUserString = "";
+			if(whitelistUserSet.size() > 0) {
+				for(String whitelistedUser : whitelistUserSet) {
+					whitelistUserString = whitelistUserString.concat(whitelistedUser + ", ");
+				}
+				getLogger().info("WhitelistUserString: " + whitelistUserString);
+				getLogger().info("lastIndex = " + whitelistUserString.lastIndexOf(", "));
+				whitelistUserString = whitelistUserString.substring(0, whitelistUserString.lastIndexOf(", "));
+				ownerConfig.set("whitelist.users", whitelistUserString);
+			}else ownerConfig.set("whitelist.users", null);
+			
+			if(blacklistUserSet.size() > 0) {
+				for(String blacklistedUser : blacklistUserSet) {
+					blacklistUserString = blacklistUserString.concat(blacklistedUser + ", ");
+				}
+				blacklistUserString = blacklistUserString.substring(0, blacklistUserString.lastIndexOf(", "));
+				ownerConfig.set("blacklist.users", blacklistUserString);
+			}else ownerConfig.set("blacklist.users", null);
 		}
 	}
 	
@@ -476,6 +508,24 @@ public class TurretsPlugin extends JavaPlugin{
     }
 	
 	public OwnerWBlists getOwnerWBlists(String ownerKey) {
-		return ownerWBlistsMap.get(ownerKey);
+		return ownerWBlistsMap.get(ownerKey.toLowerCase());
+	}
+	
+	public void addToOwnerWBlists(String ownerKey) {
+		Set<String> whitelist = new HashSet<String>();
+		Set<String> blacklist = new HashSet<String>();
+		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), new OwnerWBlists(ownerKey, whitelist, blacklist));
+	}
+	
+	public void addToOwnerWBlists(String ownerKey, OwnerWBlists ownerWBlists) {
+		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), ownerWBlists);
+	}
+	
+	public boolean removeFromOwnerWBlists(String ownerKey) {
+		if(ownerWBlistsMap.containsKey(ownerKey.toLowerCase())) {
+			this.ownerWBlistsMap.remove(ownerKey.toLowerCase());
+			return true;
+		}
+		else return false;
 	}
 }

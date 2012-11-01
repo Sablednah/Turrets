@@ -47,8 +47,6 @@ public class TurretsListener implements Listener{
 	@EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event){
         //Turret creation
-    	//TODO: If player successfully sets up a turret, initiate a WBlist for them.
-    	//This is better than doing this for every player who logs on, as you'll end up with craploads of empty sections
     	if(plugin.getPlayerCommander(event.getPlayer())!=null) {
     		PlayerCommandSender pcs = plugin.getPlayerCommander(event.getPlayer());
 	    	if(pcs.getTurretCreationStep()== 1 && pcs.getLockedState()) {
@@ -196,7 +194,10 @@ public class TurretsListener implements Listener{
 	                		plugin.getTurretOwners().put(player, turretOwner);
 	                	} else turretOwner = plugin.getTurretOwners().get(player);
 	                	if((turretOwner.getNumTurretsOwned() < turretOwner.getMaxTurretsAllowed()) || player.hasPermission("turrets.ignoremaxturrets")) {
-		                    Turret turret = new Turret(postLocation,player,plugin);
+		                    if(plugin.getOwnerWBlists(player.getName()) == null) {
+		                    	plugin.addToOwnerWBlists(player.getName());
+		                    }
+	                		Turret turret = new Turret(postLocation,player,plugin);
 		                    turretOwner.addTurretOwned(turret);
 		                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
 		                    else {
@@ -207,10 +208,8 @@ public class TurretsListener implements Listener{
 		                    plugin.addTurret(turret);
 		                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CREATED);
 	                	} else player.sendMessage("You are already at your maximum number of turrets!");
-	                }else{
-	                    plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
-	                }
-                } else player.sendMessage("You don't have permissions to create a turret!");
+	                }else plugin.notifyPlayer(player,TurretsMessage.TURRET_CANNOT_BUILD);
+                } else player.sendMessage(ChatColor.RED + "You don't have permissions to create a turret!");
             }
         }
     }

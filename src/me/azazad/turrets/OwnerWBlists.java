@@ -40,4 +40,12 @@ public class OwnerWBlists {
 	public void removePlayerFromWhitelist(String player) {
 		if(this.whitelist.contains(player)) this.whitelist.remove(player);
 	}
+	
+	public Set<String> getWhitelist() {
+		return this.whitelist;
+	}
+	
+	public Set<String> getBlacklist() {
+		return this.blacklist;
+	}
 }
