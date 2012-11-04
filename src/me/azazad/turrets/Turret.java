@@ -28,17 +28,17 @@ public class Turret{
 	private TurretOwner turretOwner;
 	private OwnerWBlists ownerWBlists;
     
-    public Turret(BlockLocation location,Player owner,TurretsPlugin plugin){
-        this(location,owner.getName(),plugin);
+    public Turret(BlockLocation location,Player owner,TurretsPlugin plugin, boolean useAmmoBox){
+        this(location,owner.getName(),plugin,useAmmoBox);
     }
     
-    public Turret(BlockLocation location,String ownerName,TurretsPlugin plugin){
+    public Turret(BlockLocation location,String ownerName,TurretsPlugin plugin,boolean useAmmoBox){
         this.location = location;
         this.ownerName = ownerName;
         this.turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(ownerName));
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
-        this.usesAmmoBox = true;
+        this.usesAmmoBox = useAmmoBox;
         this.ownerWBlists = plugin.getOwnerWBlists(ownerName);
         this.entity = new EntityTurret(this,location.getWorld(),location.getX() + 0.5,location.getY() + 1.3,location.getZ() + 0.5);
         initializeUpgradeTier();

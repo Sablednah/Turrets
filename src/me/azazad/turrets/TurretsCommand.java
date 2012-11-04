@@ -6,6 +6,7 @@ import java.util.logging.Level;
 
 import me.azazad.bukkit.util.PlayerCommandSender;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -141,7 +142,6 @@ public class TurretsCommand implements CommandExecutor{
             }else if (subcommand.equals("reload")) {
             	if (sender instanceof Player) {
             		if (sender.hasPermission("turrets.loadsave.reload")){
-            		// TODO: check for permissions
 						plugin.reloadPlugin();
             		}else sender.sendMessage(ChatColor.RED + "You don't have permission to reload Turrets!");
             	}else{
@@ -179,7 +179,7 @@ public class TurretsCommand implements CommandExecutor{
         			Player player = (Player)sender;
         			if(player.hasPermission("turrets.setammotype")) {
         				if(args.length==2) {
-        					String ammoType = args[1];
+        					String ammoType = args[1].toLowerCase();
         					Material matToUse = null;
         					if(ammoType.equals("arrow") || ammoType.equals("arrows")) matToUse = Material.ARROW;
         					else if(ammoType.equals("snowball") || ammoType.equals("snow_ball") || ammoType.equals("snowballs") || ammoType.equals("snow_balls")) matToUse = Material.SNOW_BALL;
@@ -198,7 +198,30 @@ public class TurretsCommand implements CommandExecutor{
         							player.sendMessage("Now click which turret you'd like to change the ammo type of.");
         						} else player.sendMessage(ChatColor.RED + "You are executing another command!");
         					} else player.sendMessage(ChatColor.RED + args[1] + " is not a supported ammo type!");
-        				} else player.sendMessage("Example usage: /turrets setAmmoType fireball");
+        				} else if(args.length==3) {
+		            		String ammoType = args[1].toLowerCase();
+		            		Material matToUse = null;
+		            		if(ammoType.equals("arrow") || ammoType.equals("arrows")) matToUse = Material.ARROW;
+        					else if(ammoType.equals("snowball") || ammoType.equals("snow_ball") || ammoType.equals("snowballs") || ammoType.equals("snow_balls")) matToUse = Material.SNOW_BALL;
+        					else if(ammoType.equals("expbottle") || ammoType.equals("exp_bottle") || ammoType.equals("expbottles") || ammoType.equals("exp_bottles")) matToUse = Material.EXP_BOTTLE;
+        					else if(ammoType.equals("monsteregg") || ammoType.equals("monster_egg") || ammoType.equals("monstereggs") || ammoType.equals("monster_eggs")) matToUse = Material.MONSTER_EGG;
+        					else if(ammoType.equals("egg") || ammoType.equals("eggs")) matToUse = Material.EGG;
+        					else if(ammoType.equals("potion") || ammoType.equals("potions")) matToUse = Material.POTION;
+        					else if(ammoType.equals("fireball") || ammoType.equals("fire_ball") || ammoType.equals("fireballs") || ammoType.equals("fire_balls")) matToUse = Material.FIREBALL;
+		            		
+		            		if(matToUse!=null && plugin.getUnlimitedAmmoTypes().contains(matToUse)) {
+			            		String subcommand2 = args[2].toLowerCase();
+			            		if (subcommand2.equals("all")) {
+			            			if(plugin.getTurretOwners().get(player)!=null) {
+			            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+			            				for(Turret turret : turretOwner.getTurretsOwned()) {
+			            					if(!turret.getUsesAmmoBox()) turret.setUnlimitedAmmoType(matToUse);
+			            				}
+			            				player.sendMessage("All unlimited turrets set to use " + ammoType);
+			            			} else player.sendMessage("You have no turrets!");
+			            		} else player.sendMessage("Example usage: /turrets setAmmoType fireball all"); 
+		            		} else player.sendMessage(ChatColor.RED + args[1] + " is not a supported ammo type!");
+        				} else player.sendMessage("Example usage: /turrets setAmmoType fireball all");
         			} else player.sendMessage(ChatColor.RED + "You don't have permission to change turret's ammo type!");
         		} else sender.sendMessage(ChatColor.RED + "Only a player can change a turret's ammo type!");
         		return true;
@@ -243,12 +266,8 @@ public class TurretsCommand implements CommandExecutor{
         			if(sender instanceof Player) {
         				//player adding or removing from their whitelist
         				if(sender.hasPermission("turrets.modwblists")) {
-	        				OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.toString());
+	        				OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.getName());
 		        			if(args[1].equalsIgnoreCase("add")) {
-		        				if(ownerList.isPlayerInBlacklist(args[2])) {
-		        					ownerList.removePlayerFromBlacklist(args[2]);
-		        					sender.sendMessage(args[2] + " removed from your blacklist.");
-		        				}
 		        				if(!ownerList.isPlayerInWhitelist(args[2])) {
 		        					ownerList.addPlayerToWhitelist(args[2]);
 		        					sender.sendMessage(args[2] + " added to your whitelist.");
@@ -267,11 +286,10 @@ public class TurretsCommand implements CommandExecutor{
         			if((sender instanceof Player && sender.hasPermission("turrets.modotherwblists")) || sender instanceof ConsoleCommandSender) {
         				String playerWLowner = args[1];
         				OwnerWBlists ownerList = plugin.getOwnerWBlists(playerWLowner);
+        				if(ownerList==null) {
+        					ownerList = new OwnerWBlists(playerWLowner, null, null, plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
+        				}
 	        			if(args[2].equalsIgnoreCase("add")) {
-	        				if(ownerList.isPlayerInBlacklist(args[3])) {
-	        					ownerList.removePlayerFromBlacklist(args[3]);
-	        					sender.sendMessage(args[3] + " removed from " + playerWLowner + "'s blacklist.");
-	        				}
 	        				if(!ownerList.isPlayerInWhitelist(args[3])) {
 	        					ownerList.addPlayerToWhitelist(args[3]);
 	        					sender.sendMessage(args[3] + " added to " + playerWLowner + "'s whitelist.");
@@ -291,12 +309,8 @@ public class TurretsCommand implements CommandExecutor{
         		if(args.length==3) {
         			if(sender instanceof Player) {
 	        			//player adding or removing from their blacklist
-	        			OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.toString());
+	        			OwnerWBlists ownerList = plugin.getOwnerWBlists(sender.getName());
 	        			if(args[1].equalsIgnoreCase("add")) {
-	        				if(ownerList.isPlayerInWhitelist(args[2])) {
-	        					ownerList.removePlayerFromWhitelist(args[2]);
-	        					sender.sendMessage(args[2] + " removed from your whitelist.");
-	        				}
 	        				if(!ownerList.isPlayerInBlacklist(args[2])) {
 	        					ownerList.addPlayerToBlacklist(args[2]);
 	        					sender.sendMessage(args[2] + " added to your blacklist.");
@@ -314,11 +328,10 @@ public class TurretsCommand implements CommandExecutor{
         			if((sender instanceof Player && sender.hasPermission("turrets.modotherwblists")) || sender instanceof ConsoleCommandSender) {
         				String playerBLowner = args[1];
         				OwnerWBlists ownerList = plugin.getOwnerWBlists(playerBLowner);
+        				if(ownerList==null) {
+        					ownerList = new OwnerWBlists(playerBLowner, null, null, plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
+        				}
 	        			if(args[2].equalsIgnoreCase("add")) {
-	        				if(ownerList.isPlayerInWhitelist(args[3])) {
-	        					ownerList.removePlayerFromWhitelist(args[3]);
-	        					sender.sendMessage(args[3] + " removed from " + playerBLowner + "'s whitelist.");
-	        				}
 	        				if(!ownerList.isPlayerInBlacklist(args[3])) {
 	        					ownerList.addPlayerToBlacklist(args[3]);
 	        					sender.sendMessage(args[3] + " added to " + playerBLowner + "'s blacklist.");
@@ -339,10 +352,6 @@ public class TurretsCommand implements CommandExecutor{
         			if((sender instanceof Player && sender.hasPermission("turrets.modgloballists")) || sender instanceof ConsoleCommandSender) {
         				OwnerWBlists globalList = plugin.getOwnerWBlists("global");
 	        			if(args[1].equalsIgnoreCase("add")) {
-	        				if(globalList.isPlayerInBlacklist(args[2])) {
-	        					globalList.removePlayerFromBlacklist(args[2]);
-	        					sender.sendMessage(args[2] + " removed from global blacklist.");
-	        				}
 	        				if(!globalList.isPlayerInWhitelist(args[2])) {
 	        					globalList.addPlayerToWhitelist(args[2]);
 	        					sender.sendMessage(args[2] + " added to global whitelist.");
@@ -354,70 +363,160 @@ public class TurretsCommand implements CommandExecutor{
 	        					sender.sendMessage(args[3] + " removed from global whitelist.");
 	        				} else sender.sendMessage(ChatColor.RED + args[3] + " not on global whitelist!");
 	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur gwhitelist add <USERNAME>");
-        			}else sender.sendMessage(ChatColor.RED + "You don't have permission to modify the global white and blacklists!");
+        			}else sender.sendMessage(ChatColor.RED + "You don't have permission to modify the global whitelist!");
         		}else sender.sendMessage(ChatColor.RED + "Ex. /tur gwhitelist add <USERNAME>");
         		return true;
         	}else if(subcommand.equals("gblacklist")) {
-        		if(args.length==3) {
-        			//player adding or removing from global blacklist
-        			if((sender instanceof Player && sender.hasPermission("turrets.modgloballists")) || sender instanceof ConsoleCommandSender) {
-        				OwnerWBlists globalList = plugin.getOwnerWBlists("global");
-	        			if(args[1].equalsIgnoreCase("add")) {
-	        				if(globalList.isPlayerInWhitelist(args[2])) {
-	        					globalList.removePlayerFromWhitelist(args[2]);
-	        					sender.sendMessage(args[2] + " removed from global whitelist.");
-	        				}
-	        				if(!globalList.isPlayerInBlacklist(args[2])) {
-	        					globalList.addPlayerToBlacklist(args[2]);
-	        					sender.sendMessage(args[2] + " added to global blacklist.");
-	        				}
-	        				else sender.sendMessage(ChatColor.RED + args[2] + " is already on the global blacklist!");
-	        			}else if(args[1].equalsIgnoreCase("remove")) {
-	        				if(globalList.isPlayerInBlacklist(args[3])) {
-	        					globalList.removePlayerFromBlacklist(args[3]);
-	        					sender.sendMessage(args[3] + " removed from global blacklist.");
-	        				} else sender.sendMessage(ChatColor.RED + args[3] + " not on global blacklist!");
-	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur gblacklist add <USERNAME>");
-        			}else sender.sendMessage(ChatColor.RED + "You don't have permission to modify the global white and blacklists!");
-        		}else sender.sendMessage(ChatColor.RED + "Ex. /tur gblacklist add <USERNAME>");
+        		sender.sendMessage(ChatColor.RED + "Global blacklist phased out. You really wanted someone that all turrets would shoot no matter what? Meanie...");
         		return true;
         	}else if(subcommand.equals("wblists")) {
         		if((sender instanceof Player && sender.hasPermission("turrets.modotherwblists")) || sender instanceof ConsoleCommandSender) {
 	        		if(args.length==3) {
 	        			if(args[1].equalsIgnoreCase("delete")) {
-	        				//TODO:write deletion code (checks for existence etc)
 	        				String userName = args[2];
-	        				if(plugin.getOwnerWBlists(userName)!=null) {
-	        					boolean hasTurret = false;
-	        					for(Turret turret : plugin.getTurrets()) {
-	        						if(turret.getOwnerName().equalsIgnoreCase(userName)) {
-	        							hasTurret = true;
-	        						}
-	        					}
-	        					if(hasTurret) {
-	        						plugin.removeFromOwnerWBlists(userName);
-	        						plugin.addToOwnerWBlists(userName);
-	        						sender.sendMessage(userName + " has existing turrets. White/blacklists still exist, but are now empty.");
-	        					} else {
-	        						plugin.removeFromOwnerWBlists(userName);
-	        						sender.sendMessage(userName + "'s white and blacklists removed.");
-	        					}
-	        				}
+	        				if(!userName.equalsIgnoreCase("global")) {
+		        				if(plugin.getOwnerWBlists(userName)!=null) {
+		        					boolean hasTurret = false;
+		        					for(Turret turret : plugin.getTurrets()) {
+		        						if(turret.getOwnerName().equalsIgnoreCase(userName)) {
+		        							hasTurret = true;
+		        						}
+		        					}
+		        					if(hasTurret) {
+		        						plugin.removeFromOwnerWBlists(userName);
+		        						plugin.addToOwnerWBlists(userName);
+		        						sender.sendMessage(userName + " has existing turrets. White/blacklists still exist, but are now empty.");
+		        					} else {
+		        						plugin.removeFromOwnerWBlists(userName);
+		        						sender.sendMessage(userName + "'s white and blacklists removed.");
+		        					}
+		        				}else sender.sendMessage(ChatColor.RED + "Cannot find " + userName + "'s lists!");
+	        				}else sender.sendMessage(ChatColor.RED + "You can't delete the global whitelist!");
 	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur wblists delete <userName>");
 	        		}else if(args.length==4) {
 	        			if(args[1].equalsIgnoreCase("copy")) {
-	        				//TODO:write copy code (checks for existence etc)
 	        				String userFrom = args[2];	
 	        				String userTo = args[3];
-	        				if(plugin.getOwnerWBlists(userFrom)!=null) {
-	        					if(plugin.getOwnerWBlists(userTo)!=null) plugin.removeFromOwnerWBlists(userTo);
-	        					OwnerWBlists ownerFromLists = plugin.getOwnerWBlists(userFrom);
-	        					plugin.addToOwnerWBlists(userTo, ownerFromLists);
-	        					sender.sendMessage(userFrom + "'s white and blacklists copied to " + userTo);
-	        				}else sender.sendMessage(ChatColor.RED + userFrom + " does not have a list entry to copy!");
+	        				if(!(userFrom.equalsIgnoreCase("global") || userTo.equalsIgnoreCase("global"))) {
+		        				if(plugin.getOwnerWBlists(userFrom)!=null) {
+		        					if(plugin.getOwnerWBlists(userTo)!=null) plugin.removeFromOwnerWBlists(userTo);
+		        					OwnerWBlists ownerFromLists = plugin.getOwnerWBlists(userFrom);
+		        					plugin.addToOwnerWBlists(userTo, ownerFromLists);
+		        					sender.sendMessage(userFrom + "'s white and blacklists copied to " + userTo);
+		        				}else sender.sendMessage(ChatColor.RED + userFrom + " does not have a list entry to copy!");
+	        				}else sender.sendMessage(ChatColor.RED + "You cannot copy to or from the global whitelist!");
 	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur wblists copy <userFrom> <userTo>");
 	        		}else sender.sendMessage(ChatColor.RED + "Ex. /tur wblists copy <userFrom> <userTo>");
         		}else sender.sendMessage(ChatColor.RED + "You don't have permission to copy and delete lists!");
+        		return true;
+        	}
+        	else if(subcommand.equals("pvp")) {
+        		if(args.length==2) {
+        			if(sender instanceof Player) {
+        				if(sender.hasPermission("turrets.modwblists")) {
+		        			String toggledState = args[1].toLowerCase();
+		        			if(toggledState.equals("on") || toggledState.equals("true") || toggledState.equals("t")) {
+		        				if(plugin.getOwnerWBlists(sender.getName())!=null) {
+		        					OwnerWBlists WBlist = plugin.getOwnerWBlists(sender.getName());
+		        					if(!WBlist.isPvpEnabled()) {
+		        						WBlist.setPvpEnabled(true);
+		        						sender.sendMessage("Turrets now in PvP mode!");
+		        					}
+		        					else sender.sendMessage("You already have PvP enabled!");
+		        				}else sender.sendMessage(ChatColor.RED + "You don't have any lists.");
+		        			}else if(toggledState.equals("off") || toggledState.equals("false") || toggledState.equals("f")) {
+		        				if(plugin.getOwnerWBlists(sender.getName())!=null) {
+		        					OwnerWBlists WBlist = plugin.getOwnerWBlists(sender.getName());
+		        					if(WBlist.isPvpEnabled()) {
+		        						WBlist.setPvpEnabled(false);
+		        						sender.sendMessage("Turrets now in non-PvP mode!");
+		        					}
+		        					else sender.sendMessage("You already have PvP disabled!");
+		        				}else sender.sendMessage(ChatColor.RED + "You don't have any lists.");
+		        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur pvp on");
+        				}else sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+        			}else sender.sendMessage(ChatColor.RED + "Must be a player to toggle your own pvp state!");
+        		}else if(args.length==3) {
+        			if((sender instanceof Player && sender.hasPermission("turrets.modotherwblists")) || sender instanceof ConsoleCommandSender) {
+        				String playerToChange = args[1].toLowerCase();
+        				String toggledState = args[2].toLowerCase();
+	        			if(toggledState.equals("on") || toggledState.equals("true") || toggledState.equals("t")) {
+	        				if(plugin.getOwnerWBlists(playerToChange)!=null) {
+	        					OwnerWBlists WBlist = plugin.getOwnerWBlists(playerToChange);
+	        					if(!WBlist.isPvpEnabled()) {
+	        						WBlist.setPvpEnabled(true);
+	        						if(Bukkit.getPlayer(playerToChange)!=null) Bukkit.getPlayer(playerToChange).sendMessage("Turrets now in PvP mode.");
+	        						sender.sendMessage(playerToChange + "'s turrets now in PvP mode.");
+	        					}
+	        					else sender.sendMessage(playerToChange + " already has PvP enabled!");
+	        				}else sender.sendMessage(ChatColor.RED + playerToChange + " doesn't have any lists.");
+	        			}else if(toggledState.equals("off") || toggledState.equals("false") || toggledState.equals("f")) {
+	        				if(plugin.getOwnerWBlists(playerToChange)!=null) {
+	        					OwnerWBlists WBlist = plugin.getOwnerWBlists(playerToChange);
+	        					if(WBlist.isPvpEnabled()) {
+	        						WBlist.setPvpEnabled(false);
+	        						if(Bukkit.getPlayer(playerToChange)!=null) Bukkit.getPlayer(playerToChange).sendMessage("Turrets now in non-PvP mode!");
+	        						sender.sendMessage(playerToChange + "'s turrets now in non-PvP mode!");
+	        					}
+	        					else sender.sendMessage(playerToChange + " already has PvP disabled!");
+	        				}else sender.sendMessage(ChatColor.RED + playerToChange + " doesn't have any lists.");
+	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur pvp userName on");
+        			}else sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+        		}else sender.sendMessage(ChatColor.RED + "Incorrect PvP command usage!");
+        		return true;
+        	}else if(subcommand.equals("listtype")) {
+        		if(args.length==2) {
+        			if(sender instanceof Player) {
+        				if(sender.hasPermission("turrets.modwblists")) {
+		        			String toggledState = args[1].toLowerCase();
+		        			if(toggledState.equals("blacklist") || toggledState.equals("black") || toggledState.equals("bl")) {
+		        				if(plugin.getOwnerWBlists(sender.getName())!=null) {
+		        					OwnerWBlists WBlist = plugin.getOwnerWBlists(sender.getName());
+		        					if(!WBlist.isUsingBlacklist()) {
+		        						WBlist.setUseBlacklist(true);
+		        						sender.sendMessage("Turrets now using the blacklist.");
+		        					}
+		        					else sender.sendMessage("You are already using the blacklist.");
+		        				}else sender.sendMessage(ChatColor.RED + "You don't have any lists.");
+		        			}else if(toggledState.equals("whitelist") || toggledState.equals("white") || toggledState.equals("wl")) {
+		        				if(plugin.getOwnerWBlists(sender.getName())!=null) {
+		        					OwnerWBlists WBlist = plugin.getOwnerWBlists(sender.getName());
+		        					if(WBlist.isUsingBlacklist()) {
+		        						WBlist.setUseBlacklist(false);
+		        						sender.sendMessage("Turrets now using whitelist.");
+		        					}
+		        					else sender.sendMessage("You are already using the whitelist.");
+		        				}else sender.sendMessage(ChatColor.RED + "You don't have any lists.");
+		        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur listType blacklist");
+        				}else sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+        			}else sender.sendMessage(ChatColor.RED + "Must be a player to toggle your own list type used!");
+        		}else if(args.length==3) {
+        			if((sender instanceof Player && sender.hasPermission("turrets.modotherwblists")) || sender instanceof ConsoleCommandSender) {
+        				String playerToChange = args[1].toLowerCase();
+        				String toggledState = args[2].toLowerCase();
+	        			if(toggledState.equals("blacklist") || toggledState.equals("black") || toggledState.equals("bl")) {
+	        				if(plugin.getOwnerWBlists(playerToChange)!=null) {
+	        					OwnerWBlists WBlist = plugin.getOwnerWBlists(playerToChange);
+	        					if(!WBlist.isUsingBlacklist()) {
+	        						WBlist.setUseBlacklist(true);
+	        						if(Bukkit.getPlayer(playerToChange)!=null) Bukkit.getPlayer(playerToChange).sendMessage("Turrets now using blacklist.");
+	        						sender.sendMessage(playerToChange + "'s turrets now using blacklist.");
+	        					}
+	        					else sender.sendMessage(playerToChange + " is already using blacklist!");
+	        				}else sender.sendMessage(ChatColor.RED + playerToChange + " doesn't have any lists.");
+	        			}else if(toggledState.equals("whitelist") || toggledState.equals("white") || toggledState.equals("wl")) {
+	        				if(plugin.getOwnerWBlists(playerToChange)!=null) {
+	        					OwnerWBlists WBlist = plugin.getOwnerWBlists(playerToChange);
+	        					if(WBlist.isUsingBlacklist()) {
+	        						WBlist.setUseBlacklist(false);
+	        						if(Bukkit.getPlayer(playerToChange)!=null) Bukkit.getPlayer(playerToChange).sendMessage("Turrets now using whitelist.");
+	        						sender.sendMessage(playerToChange + "'s turrets now using whitelist.");
+	        					}
+	        					else sender.sendMessage(playerToChange + " is already using whitelist!");
+	        				}else sender.sendMessage(ChatColor.RED + playerToChange + " doesn't have any lists.");
+	        			}else sender.sendMessage(ChatColor.RED + "Ex. /tur listType userName blacklist");
+        			}else sender.sendMessage(ChatColor.RED + "You don't have permission to do that!");
+        		}else sender.sendMessage(ChatColor.RED + "Incorrect white/blacklist command usage!");
         		return true;
         	}
         	else{

@@ -1,4 +1,4 @@
-//TODO: auto-save turrets every 5 minutes or so, make turrets freezable
+//TODO: auto-save turrets every 5 minutes or so
 //TODO: handle removal of minecart entity more cleanly
 
 package me.azazad.turrets;
@@ -53,10 +53,9 @@ public class TurretsPlugin extends JavaPlugin{
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
     
     public Set<String> globalWhitelist;
-    public Set<String> globalBlacklist;
     
     public static Logger globalLogger;
-    private Map<String,Boolean> configMap = new HashMap<String,Boolean>();
+    private Map<String,Boolean> booleanConfigMap = new HashMap<String,Boolean>();
     
     public PluginDescriptionFile pdf;
     private final UpgradeLadder upgradeLadder = new UpgradeLadder();
@@ -336,7 +335,7 @@ public class TurretsPlugin extends JavaPlugin{
 	}
 	
 	public Map<String, Boolean> getConfigMap() {
-		return this.configMap;
+		return this.booleanConfigMap;
 	}
 
 	public int getMaxTurretsPerPlayer() {
@@ -422,6 +421,8 @@ public class TurretsPlugin extends JavaPlugin{
 	
 	private void loadWBLists() {
 		Set<String> ownerList = ownerWBlists.getKeys(false);
+		boolean pvpEnabled;
+		boolean defaultUseBlacklist;
 		for(String owner : ownerList) {
 			ConfigurationSection ownerConfig = ownerWBlists.getConfigurationSection(owner);
 			Set<String> whitelistUserSet = new HashSet<String>();
@@ -444,11 +445,12 @@ public class TurretsPlugin extends JavaPlugin{
 					}
 				}
 			}
-			OwnerWBlists ownerWBlist = new OwnerWBlists(owner, whitelistUserSet, blacklistUserSet);
+			pvpEnabled = ownerConfig.getBoolean("pvp",this.getConfigMap().get("defaultPvpOn"));
+			defaultUseBlacklist = ownerConfig.getBoolean("usingBlacklist", this.getConfigMap().get("defaultUseBlacklist"));
+			OwnerWBlists ownerWBlist = new OwnerWBlists(owner, whitelistUserSet, blacklistUserSet, defaultUseBlacklist, pvpEnabled);
 			ownerWBlistsMap.put(owner, ownerWBlist);
 			if(owner.equals("global")) {
 				globalWhitelist = whitelistUserSet;
-				globalBlacklist = blacklistUserSet;
 			}
 		}
 	}
@@ -467,9 +469,7 @@ public class TurretsPlugin extends JavaPlugin{
 				for(String whitelistedUser : whitelistUserSet) {
 					whitelistUserString = whitelistUserString.concat(whitelistedUser + ", ");
 				}
-				getLogger().info("WhitelistUserString: " + whitelistUserString);
-				getLogger().info("lastIndex = " + whitelistUserString.lastIndexOf(", "));
-				whitelistUserString = whitelistUserString.substring(0, whitelistUserString.lastIndexOf(", "));
+				whitelistUserString = whitelistUserString.substring(0, whitelistUserString.lastIndexOf(", ")).toLowerCase();
 				ownerConfig.set("whitelist.users", whitelistUserString);
 			}else ownerConfig.set("whitelist.users", null);
 			
@@ -477,28 +477,32 @@ public class TurretsPlugin extends JavaPlugin{
 				for(String blacklistedUser : blacklistUserSet) {
 					blacklistUserString = blacklistUserString.concat(blacklistedUser + ", ");
 				}
-				blacklistUserString = blacklistUserString.substring(0, blacklistUserString.lastIndexOf(", "));
+				blacklistUserString = blacklistUserString.substring(0, blacklistUserString.lastIndexOf(", ")).toLowerCase();
 				ownerConfig.set("blacklist.users", blacklistUserString);
 			}else ownerConfig.set("blacklist.users", null);
+			ownerConfig.set("pvp", ownerWBlistsMap.get(owner).isPvpEnabled());
+			ownerConfig.set("usingBlacklist", ownerWBlistsMap.get(owner).isUsingBlacklist());
 		}
 	}
 	
 	private void loadConfigOptions(Configuration config, Logger logger) {
-		configMap.put("activeOnCreate", true);
-		configMap.put("allowAllToMan", false);
-		configMap.put("allowAllToChangeAmmo", false);
-		configMap.put("allowAllToAddAmmoBox", false);
-		configMap.put("allowAllToDestroy", false);
-		configMap.put("allowAllToModActivate", false);
-		configMap.put("pickupUnlimArrows", false);
-		configMap.put("pickupAmmoArrows", true);
-		configMap.put("attackNonlistPlayers", false);
+		booleanConfigMap.put("activeOnCreate", true);
+		booleanConfigMap.put("allowAllToMan", false);
+		booleanConfigMap.put("allowAllToChangeAmmo", false);
+		booleanConfigMap.put("allowAllToAddAmmoBox", false);
+		booleanConfigMap.put("allowAllToDestroy", false);
+		booleanConfigMap.put("allowAllToModActivate", false);
+		booleanConfigMap.put("pickupUnlimArrows", false);
+		booleanConfigMap.put("pickupAmmoArrows", true);
+		booleanConfigMap.put("defaultPvpOn", false);
+		booleanConfigMap.put("defaultUseBlacklist", true);
+		booleanConfigMap.put("defaultUseAmmoBox", true);
 		String configMapKey;	
-		for(int i=0; i< configMap.size(); i++) {
-			configMapKey = configMap.keySet().toArray()[i].toString();
+		for(int i=0; i< booleanConfigMap.size(); i++) {
+			configMapKey = booleanConfigMap.keySet().toArray()[i].toString();
 			if(config.get(configMapKey,null)!=null){
-				configMap.put(configMapKey, config.getBoolean(configMapKey));
-			}else config.set(configMapKey, configMap.get(configMapKey));
+				booleanConfigMap.put(configMapKey, config.getBoolean(configMapKey));
+			}else config.set(configMapKey, booleanConfigMap.get(configMapKey));
 		}
 		if(config.get("maxTurretsPerPlayer",null)!=null) this.setMaxTurretsPerPlayer(config.getInt("maxTurretsPerPlayer"));
 		else{
@@ -512,9 +516,7 @@ public class TurretsPlugin extends JavaPlugin{
 	}
 	
 	public void addToOwnerWBlists(String ownerKey) {
-		Set<String> whitelist = new HashSet<String>();
-		Set<String> blacklist = new HashSet<String>();
-		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), new OwnerWBlists(ownerKey, whitelist, blacklist));
+		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), new OwnerWBlists(ownerKey, null, null, this.getConfigMap().get("defaultUseBlacklist"), this.getConfigMap().get("defaultPvpOn")));
 	}
 	
 	public void addToOwnerWBlists(String ownerKey, OwnerWBlists ownerWBlists) {

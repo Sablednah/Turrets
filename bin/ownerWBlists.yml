@@ -1,9 +1,13 @@
 global:
+  pvp: false #does nothing
+  usingBlacklist: false #does nothing
   whitelist: 
     users: wristdirect, MentuMad
-  blacklist: 
-    users: livingdarkness
+  blacklist: #not used
+    users: DON'T USE
 wristdirect:
+  pvp: false
+  usingBlacklist: true
   whitelist: 
     users: livingdarkness
   blacklist: 

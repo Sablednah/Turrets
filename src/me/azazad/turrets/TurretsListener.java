@@ -197,7 +197,7 @@ public class TurretsListener implements Listener{
 		                    if(plugin.getOwnerWBlists(player.getName()) == null) {
 		                    	plugin.addToOwnerWBlists(player.getName());
 		                    }
-	                		Turret turret = new Turret(postLocation,player,plugin);
+	                		Turret turret = new Turret(postLocation,player,plugin,plugin.getConfigMap().get("defaultUseAmmoBox"));
 		                    turretOwner.addTurretOwned(turret);
 		                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
 		                    else {

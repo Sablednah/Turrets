@@ -9,7 +9,7 @@ public interface TurretDatabase{
     
     public void saveTurrets(Collection<Turret> turrets) throws IOException;
     
-    public void saveTurretsForReload(Collection<Turret> turrets) throws IOException;
-
-	public void reloadTurrets() throws IOException;
+//    public void saveTurretsForReload(Collection<Turret> turrets) throws IOException;
+//
+//	public void reloadTurrets() throws IOException;
 }

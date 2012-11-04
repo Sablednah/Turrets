@@ -3,6 +3,8 @@ package me.azazad.turrets.nms;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import me.azazad.turrets.OwnerWBlists;
 import me.azazad.turrets.Turret;
 import me.azazad.turrets.TurretAmmoBox;
 import me.azazad.turrets.targeting.TargetAssessment;
@@ -121,6 +123,16 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 	        //if(!getPlayerControl()) {
         	if(true) {
 	        	//If not currently targeting an entity, find a suitable one
+        		if(target != null) {
+        			if(targetSearchCooldown == 0) {
+        				if(target instanceof LivingEntity) {
+	        				List<LivingEntity> curTarget = new ArrayList<LivingEntity>();
+	        				curTarget.add((LivingEntity)target);
+	        				filterTargets(curTarget);
+	        				target = curTarget.get(0);
+        				}
+        			}
+        		}
 		        if(target == null){
 		            if(targetSearchCooldown == 0){
 		                Entity foundTarget = findTarget(range);
@@ -278,24 +290,32 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         while(it.hasNext()){
             LivingEntity mob = it.next();
             TargetAssessment assessment = assessTarget(mob);
-            //TODO: check if default is to attack nonlist players or not, set assessment to that
-            //Then, check for player on the opposing list (if nonlist = attack, check whitelist)
-            //Lastly, regardless of all other things, do a separate if else for the global list
             if(assessment == TargetAssessment.EITHER) {
             	if(mob instanceof Player) {
             		Player playerTarget = (Player) mob;
-	            	boolean default_attack = this.getTurret().getPlugin().getConfigMap().get("attackNonlistPlayers");
-	            	//this.getTurret().getPlugin().getLogger().info("def_att = " + Boolean.toString(default_attack));
-	            	boolean PW = this.getTurret().getWBlists().isPlayerInWhitelist(playerTarget.getName());
-	            	//this.getTurret().getPlugin().getLogger().info("PW = " + Boolean.toString(PW));
-	            	boolean PB = this.getTurret().getWBlists().isPlayerInBlacklist(playerTarget.getName());
-	            	//this.getTurret().getPlugin().getLogger().info("PB = " + Boolean.toString(PB));
-	            	boolean GW = this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName());
-	            	//this.getTurret().getPlugin().getLogger().info("GW = " + Boolean.toString(GW));
-	            	boolean GB = this.getTurret().getPlugin().globalBlacklist.contains(playerTarget.getName());
-	            	//this.getTurret().getPlugin().getLogger().info("GB = " + Boolean.toString(GB));
-	            	//Sorry for how obscure this is...used a truth table on paper :P
-	            	boolean isHostileTarget = (!GW&&GB) || (!GW&&!GB&&!PW&&PB) || (!GW&&!GB&&!PW&&!PB&&default_attack);
+            		boolean isHostileTarget;
+            		OwnerWBlists WBlists = this.getTurret().getWBlists();
+            		if(WBlists.isPvpEnabled()) {
+            			if(WBlists.isUsingBlacklist()) {
+            				if(WBlists.isPlayerInBlacklist(playerTarget.getName().toLowerCase())){
+            					if(this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName().toLowerCase())) {
+            						isHostileTarget = false;
+            					}
+            					else isHostileTarget = true;
+            				}
+            				else isHostileTarget = false;
+            			}
+            			else {
+            				if(WBlists.isPlayerInWhitelist(playerTarget.getName().toLowerCase())) isHostileTarget = false;
+            				else {
+            					if(this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName().toLowerCase())) {
+            						isHostileTarget = false;
+            					}
+            					else isHostileTarget = true;
+            				}
+            			}
+            		}else isHostileTarget = false;
+	            	if(playerTarget.getName().equalsIgnoreCase(this.turret.getOwnerName())) isHostileTarget = false;
 	            	if(isHostileTarget) assessment = TargetAssessment.HOSTILE;
 	            	else assessment = TargetAssessment.NOT_HOSTILE;
             	}
@@ -306,7 +326,6 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             }
         }
     }
-    
     private TargetAssessment assessTarget(LivingEntity mob){
         TargetAssessment overallAssessment = TargetAssessment.MEH;
         
@@ -427,6 +446,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
                     EntitySmallFireball entitySmallFireball = new EntitySmallFireball(world,itemX,itemY,itemZ,factorX,factorY,factorZ);
                     world.addEntity(entitySmallFireball);
                     world.triggerEffect(1009,blockX,blockY,blockZ,0);
+                    
                     break;
                     
                 default:
