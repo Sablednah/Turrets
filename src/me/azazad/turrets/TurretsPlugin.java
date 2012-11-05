@@ -292,6 +292,12 @@ public class TurretsPlugin extends JavaPlugin{
 //        return permissionsProvider;
 //    }
     
+    public void respawnTurret(BlockLocation bloc) {
+    	Turret turret = turrets.get(bloc);
+    	turret.despawn();
+    	turret.spawn();
+    }
+    
     
     public void notifyPlayer(Player player,TurretsMessage messageType){
         notifyPlayer(player,getMessage(messageType));
@@ -350,7 +356,7 @@ public class TurretsPlugin extends JavaPlugin{
 		return this.turretOwners;
 	}
 	
-	public void reloadPlugin() {
+	public void reloadPlugin(int verbose) {
 		globalLogger = getLogger();
         Logger logger = getLogger();
 		try{
@@ -378,7 +384,7 @@ public class TurretsPlugin extends JavaPlugin{
         }
         
         logger.info("Total number of turrets: "+turrets.size());
-        Bukkit.broadcastMessage(ChatColor.YELLOW + "Reloaded "+ ChatColor.GRAY + getDescription().getFullName());
+        if(verbose==1) Bukkit.broadcastMessage(ChatColor.YELLOW + "Reloaded "+ ChatColor.GRAY + getDescription().getFullName());
 	}
 	
 	private void firstRun() {

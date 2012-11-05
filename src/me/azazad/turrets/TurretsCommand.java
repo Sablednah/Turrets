@@ -142,10 +142,10 @@ public class TurretsCommand implements CommandExecutor{
             }else if (subcommand.equals("reload")) {
             	if (sender instanceof Player) {
             		if (sender.hasPermission("turrets.loadsave.reload")){
-						plugin.reloadPlugin();
+						plugin.reloadPlugin(1);
             		}else sender.sendMessage(ChatColor.RED + "You don't have permission to reload Turrets!");
             	}else{
-            		plugin.reloadPlugin();
+            		plugin.reloadPlugin(1);
             	}
             	return(true);
         	}else if(subcommand.equals("activate")){

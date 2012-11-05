@@ -1,13 +1,12 @@
 package me.azazad.turrets;
 
 import java.util.Collection;
-
 import me.azazad.turrets.nms.EntityTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.bukkit.util.PlayerCommandSender;
 import net.minecraft.server.EntityMinecart;
-
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -28,6 +27,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -290,15 +290,31 @@ public class TurretsListener implements Listener{
         }
     }
     
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerLogin(PlayerLoginEvent event) {
     	Player player = event.getPlayer();
     	Collection<Turret> turretList = plugin.getTurrets();
     	TurretOwner turretOwner = new TurretOwner(player,plugin);
 		plugin.getTurretOwners().put(player, turretOwner);
+		
     	for(Turret turret : turretList) {
     		if(turret.getOwnerName().equals(player.getName())) {
     			turretOwner.addTurretOwned(turret);
+    		}
+    	}
+    }
+    
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+    	int viewStartX = (event.getPlayer().getLocation().getChunk().getX() - Bukkit.getServer().getViewDistance()) << 4;
+    	int viewStartZ = (event.getPlayer().getLocation().getChunk().getZ() - Bukkit.getServer().getViewDistance()) << 4;
+    	int viewEndX = (event.getPlayer().getLocation().getChunk().getX() + Bukkit.getServer().getViewDistance()) << 4;
+    	int viewEndZ = (event.getPlayer().getLocation().getChunk().getZ() + Bukkit.getServer().getViewDistance()) << 4;
+    	BlockLocation bloc;
+    	for(Turret turret : plugin.getTurrets()) {
+    		bloc = turret.getLocation();
+    		if ((bloc.getX()>=viewStartX && bloc.getX()<viewEndX) && (bloc.getZ()>=viewStartZ && bloc.getZ()<viewEndZ)) {
+    			plugin.respawnTurret(bloc);
     		}
     	}
     }
