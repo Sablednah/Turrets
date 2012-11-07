@@ -26,7 +26,6 @@ public class Turret{
     private boolean isActive;
 	private Material unlimitedAmmoType = Material.ARROW;
 	private TurretOwner turretOwner;
-	private OwnerWBlists ownerWBlists;
     
     public Turret(BlockLocation location,Player owner,TurretsPlugin plugin, boolean useAmmoBox){
         this(location,owner.getName(),plugin,useAmmoBox);
@@ -35,11 +34,10 @@ public class Turret{
     public Turret(BlockLocation location,String ownerName,TurretsPlugin plugin,boolean useAmmoBox){
         this.location = location;
         this.ownerName = ownerName;
-        this.turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(ownerName));
+        this.turretOwner = plugin.getTurretOwners().get(Bukkit.getOfflinePlayer(ownerName));
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
         this.usesAmmoBox = useAmmoBox;
-        this.ownerWBlists = plugin.getOwnerWBlists(ownerName);
         this.entity = new EntityTurret(this,location.getWorld(),location.getX() + 0.5,location.getY() + 1.3,location.getZ() + 0.5);
         initializeUpgradeTier();
     }
@@ -195,9 +193,5 @@ public class Turret{
 	
 	public TurretOwner getTurretOwner() {
 		return this.turretOwner;
-	}
-	
-	public OwnerWBlists getWBlists() {
-		return this.ownerWBlists;
 	}
 }

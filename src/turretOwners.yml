@@ -1,13 +1,15 @@
 global:
   pvp: false #does nothing
   usingBlacklist: false #does nothing
+  maxTurretsAllowed: -1
   whitelist: 
     users: wristdirect, MentuMad
   blacklist: #not used
-    users: DON'T USE
+    users: do-not-use
 wristdirect:
   pvp: false
   usingBlacklist: true
+  maxTurretsAllowed: 8
   whitelist: 
     users: livingdarkness
   blacklist: 

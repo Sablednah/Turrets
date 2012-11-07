@@ -1,6 +1,7 @@
 package me.azazad.turrets;
 
-import java.util.Collection;
+import java.util.HashSet;
+
 import me.azazad.turrets.nms.EntityTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
@@ -190,13 +191,10 @@ public class TurretsListener implements Listener{
 	                if(plugin.canBuildTurret(postLocation)){
 	                	TurretOwner turretOwner = null;
 	                	if(!plugin.getTurretOwners().containsKey(player)) {
-	                		turretOwner = new TurretOwner(player,plugin);
-	                		plugin.getTurretOwners().put(player, turretOwner);
+	                		turretOwner = new TurretOwner(plugin, player.getName(), plugin.getMaxTurretsPerPlayer(), new HashSet<String>(), new HashSet<String>(), plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
+	                		plugin.getTurretOwners().put(player.getName(), turretOwner);
 	                	} else turretOwner = plugin.getTurretOwners().get(player);
 	                	if((turretOwner.getNumTurretsOwned() < turretOwner.getMaxTurretsAllowed()) || player.hasPermission("turrets.ignoremaxturrets")) {
-		                    if(plugin.getOwnerWBlists(player.getName()) == null) {
-		                    	plugin.addToOwnerWBlists(player.getName());
-		                    }
 	                		Turret turret = new Turret(postLocation,player,plugin,plugin.getConfigMap().get("defaultUseAmmoBox"));
 		                    turretOwner.addTurretOwned(turret);
 		                    if(itemInHand.getAmount() == 1) player.setItemInHand(new ItemStack(Material.AIR));
@@ -292,16 +290,7 @@ public class TurretsListener implements Listener{
     
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerLogin(PlayerLoginEvent event) {
-    	Player player = event.getPlayer();
-    	Collection<Turret> turretList = plugin.getTurrets();
-    	TurretOwner turretOwner = new TurretOwner(player,plugin);
-		plugin.getTurretOwners().put(player, turretOwner);
-		
-    	for(Turret turret : turretList) {
-    		if(turret.getOwnerName().equals(player.getName())) {
-    			turretOwner.addTurretOwned(turret);
-    		}
-    	}
+    	if(plugin.getTurretOwner(event.getPlayer())!=null) plugin.getTurretOwner(event.getPlayer()).refreshOnlineStatus();
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -321,7 +310,8 @@ public class TurretsListener implements Listener{
     
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-    	plugin.getTurretOwners().remove(event.getPlayer());
+    	//TODO:save turret owner info as you would have ownerWBlists
+    	if(plugin.getTurretOwner(event.getPlayer())!=null) plugin.getTurretOwner(event.getPlayer()).refreshOnlineStatus();
     }
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

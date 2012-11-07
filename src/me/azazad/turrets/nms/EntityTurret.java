@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import me.azazad.turrets.OwnerWBlists;
 import me.azazad.turrets.Turret;
 import me.azazad.turrets.TurretAmmoBox;
+import me.azazad.turrets.TurretOwner;
 import me.azazad.turrets.targeting.TargetAssessment;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
@@ -294,10 +294,10 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             	if(mob instanceof Player) {
             		Player playerTarget = (Player) mob;
             		boolean isHostileTarget;
-            		OwnerWBlists WBlists = this.getTurret().getWBlists();
-            		if(WBlists.isPvpEnabled()) {
-            			if(WBlists.isUsingBlacklist()) {
-            				if(WBlists.isPlayerInBlacklist(playerTarget.getName().toLowerCase())){
+            		TurretOwner turretOwner = this.getTurret().getTurretOwner();
+            		if(turretOwner.isPvpEnabled()) {
+            			if(turretOwner.isUsingBlacklist()) {
+            				if(turretOwner.isPlayerInBlacklist(playerTarget.getName().toLowerCase())){
             					if(this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName().toLowerCase())) {
             						isHostileTarget = false;
             					}
@@ -306,7 +306,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             				else isHostileTarget = false;
             			}
             			else {
-            				if(WBlists.isPlayerInWhitelist(playerTarget.getName().toLowerCase())) isHostileTarget = false;
+            				if(turretOwner.isPlayerInWhitelist(playerTarget.getName().toLowerCase())) isHostileTarget = false;
             				else {
             					if(this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName().toLowerCase())) {
             						isHostileTarget = false;

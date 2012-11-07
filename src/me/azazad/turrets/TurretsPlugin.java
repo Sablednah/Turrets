@@ -30,6 +30,7 @@ import me.azazad.turrets.upgrade.UpgradeLadder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.block.Chest;
 import org.bukkit.configuration.Configuration;
@@ -45,10 +46,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TurretsPlugin extends JavaPlugin{
     private static final String TURRET_DB_FILENAME = "turrets.yml";
-    private static final String OWNER_DB_FILENAME = "ownerWBlists.yml";
-    private static FileConfiguration ownerWBlists;
-    private static File ownerWBlistsFile = null;
-    private Map<String, OwnerWBlists> ownerWBlistsMap = new HashMap<String, OwnerWBlists>();
+    private static final String OWNER_DB_FILENAME = "turretOwners.yml";
+    private static final String OLD_OWNER_DB_FILENAME = "ownerWBlists.yml";
+    private static FileConfiguration turretOwnersFC;
+    private static File turretOwnersFile = null;
+    private static File oldTurretOwnersFile = null;
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
     
@@ -64,11 +66,10 @@ public class TurretsPlugin extends JavaPlugin{
     private List<Material> unlimitedAmmoTypes = new ArrayList<Material>();
     private final List<TargetAssessor> targetAssessors = new ArrayList<TargetAssessor>();
     private final Map<BlockLocation,Turret> turrets = new HashMap<BlockLocation,Turret>();
-    private final Map<Player,TurretOwner> turretOwners = new HashMap<Player,TurretOwner>();
+    private final Map<String,TurretOwner> turretOwners = new HashMap<String,TurretOwner>();
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
     private int maxTurretsPerPlayer;
     
-//    private Permission permissionsProvider;
     
     public TurretsPlugin(){
         targetAssessors.add(new MobAssessor());
@@ -99,11 +100,12 @@ public class TurretsPlugin extends JavaPlugin{
         logger.info("Config file loaded.");
         
         //load owner whitelists
-        ownerWBlistsFile = new File(getDataFolder(), OWNER_DB_FILENAME);
+        turretOwnersFile = new File(getDataFolder(), OWNER_DB_FILENAME);
+        oldTurretOwnersFile = new File(getDataFolder(), OLD_OWNER_DB_FILENAME);
 		firstRun();
-		ownerWBlists = new YamlConfiguration();
+		turretOwnersFC = new YamlConfiguration();
 		loadYamls();
-		loadWBLists();
+		loadTurretOwners();
         
         //register listeners
         pluginManager.registerEvents(new TurretsListener(this),this);
@@ -140,7 +142,7 @@ public class TurretsPlugin extends JavaPlugin{
         }catch(IOException e){
             logger.log(Level.SEVERE,"Failed to save turrets",e);
         }
-        saveWBlists();
+        saveTurretOwners();
         saveYamls();
         this.saveConfig();
     }
@@ -270,7 +272,7 @@ public class TurretsPlugin extends JavaPlugin{
         }
         
         for(Turret turret : dbTurrets){
-            if(!turrets.containsKey(turret.getLocation())){
+            if(!turrets.containsKey(turret.getLocation())) {
                 turrets.put(turret.getLocation(),turret);
                 turret.spawn();
             }
@@ -352,9 +354,35 @@ public class TurretsPlugin extends JavaPlugin{
 		this.maxTurretsPerPlayer = maxTurretsPerPlayer;
 	}
 	
-	public Map<Player,TurretOwner> getTurretOwners() {
+	public Map<String,TurretOwner> getTurretOwners() {
 		return this.turretOwners;
 	}
+	
+	public TurretOwner getTurretOwner(String ownerName) {
+		TurretOwner ownerReturn = null;
+		for(TurretOwner turretOwner : this.turretOwners.values()) {
+			if(turretOwner.getOwnerName().equalsIgnoreCase(ownerName)) ownerReturn = turretOwner;
+		}
+		return ownerReturn;
+	}
+	
+	public TurretOwner getTurretOwner(Player player) {
+		TurretOwner ownerReturn = null;
+		for(TurretOwner turretOwner : this.turretOwners.values()) {
+			if(turretOwner.getOfflinePlayer().getPlayer().equals(player)) ownerReturn = turretOwner;
+		}
+		return ownerReturn;
+	}
+	
+	public TurretOwner getTurretOwner(OfflinePlayer offlinePlayer) {
+		TurretOwner ownerReturn = null;
+		for(TurretOwner turretOwner : this.turretOwners.values()) {
+			if(turretOwner.getOfflinePlayer().equals(offlinePlayer)) ownerReturn = turretOwner;
+		}
+		return ownerReturn;
+	}
+	
+	
 	
 	public void reloadPlugin(int verbose) {
 		globalLogger = getLogger();
@@ -388,13 +416,19 @@ public class TurretsPlugin extends JavaPlugin{
 	}
 	
 	private void firstRun() {
-		if(!ownerWBlistsFile.exists()){
-			ownerWBlistsFile.getParentFile().mkdirs();
-	        copy(getResource(OWNER_DB_FILENAME), ownerWBlistsFile);
-	    }
+		if(!turretOwnersFile.exists()){
+			if(oldTurretOwnersFile.exists()) {
+				turretOwnersFile.getParentFile().mkdirs();
+				oldTurretOwnersFile.renameTo(turretOwnersFile);
+			}
+			else {
+				turretOwnersFile.getParentFile().mkdirs();
+				copyStreamToFile(getResource(OWNER_DB_FILENAME), turretOwnersFile);
+			}
+ 	    }
 	}
 	
-	private void copy(InputStream in, File file) {
+	private void copyStreamToFile(InputStream in, File file) {
 	    try {
 	        OutputStream out = new FileOutputStream(file);
 	        byte[] buf = new byte[1024];
@@ -411,7 +445,7 @@ public class TurretsPlugin extends JavaPlugin{
 	
 	public void saveYamls() {
 	    try {
-	    	ownerWBlists.save(ownerWBlistsFile);
+	    	turretOwnersFC.save(turretOwnersFile);
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	    }
@@ -419,18 +453,20 @@ public class TurretsPlugin extends JavaPlugin{
 	
 	public void loadYamls() {
 	    try {
-	    	ownerWBlists.load(ownerWBlistsFile);
+	    	turretOwnersFC.load(turretOwnersFile);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 	}
 	
-	private void loadWBLists() {
-		Set<String> ownerList = ownerWBlists.getKeys(false);
+	private void loadTurretOwners() {
+		//TODO: make this loadTurretOwners(), which calls loadTurretOwner(String ownerName) or w/e, for every TurretOwner
+		//You need to load all turret owners (offline and online) at server start, as the whitelist info etc is stored there.
+		Set<String> ownerList = turretOwnersFC.getKeys(false);
 		boolean pvpEnabled;
 		boolean defaultUseBlacklist;
 		for(String owner : ownerList) {
-			ConfigurationSection ownerConfig = ownerWBlists.getConfigurationSection(owner);
+			ConfigurationSection ownerConfig = turretOwnersFC.getConfigurationSection(owner);
 			Set<String> whitelistUserSet = new HashSet<String>();
 			Set<String> blacklistUserSet = new HashSet<String>();
 			String[] listUsers;
@@ -453,22 +489,25 @@ public class TurretsPlugin extends JavaPlugin{
 			}
 			pvpEnabled = ownerConfig.getBoolean("pvp",this.getConfigMap().get("defaultPvpOn"));
 			defaultUseBlacklist = ownerConfig.getBoolean("usingBlacklist", this.getConfigMap().get("defaultUseBlacklist"));
-			OwnerWBlists ownerWBlist = new OwnerWBlists(owner, whitelistUserSet, blacklistUserSet, defaultUseBlacklist, pvpEnabled);
-			ownerWBlistsMap.put(owner, ownerWBlist);
+			int maxTurretsAllowed = ownerConfig.getInt("maxTurretsAllowed", maxTurretsPerPlayer);
 			if(owner.equals("global")) {
 				globalWhitelist = whitelistUserSet;
+				maxTurretsAllowed = 1000;	
 			}
+			TurretOwner turretOwner = new TurretOwner(this, owner, maxTurretsAllowed, whitelistUserSet, blacklistUserSet, defaultUseBlacklist, pvpEnabled);
+			turretOwners.put(owner, turretOwner);
 		}
 	}
 	
-	private void saveWBlists() {
-		Set<String> ownerList = ownerWBlistsMap.keySet();
+	private void saveTurretOwners() {	
+		//TODO: same thing as loadWBlists().
+		Set<String> ownerList = turretOwners.keySet();
 		Set<String> whitelistUserSet;
 		Set<String> blacklistUserSet;
 		for(String owner : ownerList) {
-			ConfigurationSection ownerConfig = ownerWBlists.createSection(owner);
-			whitelistUserSet = ownerWBlistsMap.get(owner).getWhitelist();
-			blacklistUserSet = ownerWBlistsMap.get(owner).getBlacklist();
+			ConfigurationSection ownerConfig = turretOwnersFC.createSection(owner);
+			whitelistUserSet = turretOwners.get(owner).getWhitelist();
+			blacklistUserSet = turretOwners.get(owner).getBlacklist();
 			String whitelistUserString = "";
 			String blacklistUserString = "";
 			if(whitelistUserSet.size() > 0) {
@@ -486,8 +525,9 @@ public class TurretsPlugin extends JavaPlugin{
 				blacklistUserString = blacklistUserString.substring(0, blacklistUserString.lastIndexOf(", ")).toLowerCase();
 				ownerConfig.set("blacklist.users", blacklistUserString);
 			}else ownerConfig.set("blacklist.users", null);
-			ownerConfig.set("pvp", ownerWBlistsMap.get(owner).isPvpEnabled());
-			ownerConfig.set("usingBlacklist", ownerWBlistsMap.get(owner).isUsingBlacklist());
+			ownerConfig.set("pvp", turretOwners.get(owner).isPvpEnabled());
+			ownerConfig.set("usingBlacklist", turretOwners.get(owner).isUsingBlacklist());
+			ownerConfig.set("maxTurretsAllowed", turretOwners.get(owner).getMaxTurretsAllowed());
 		}
 	}
 	
@@ -517,23 +557,23 @@ public class TurretsPlugin extends JavaPlugin{
 		}
     }
 	
-	public OwnerWBlists getOwnerWBlists(String ownerKey) {
-		return ownerWBlistsMap.get(ownerKey.toLowerCase());
-	}
-	
-	public void addToOwnerWBlists(String ownerKey) {
-		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), new OwnerWBlists(ownerKey, null, null, this.getConfigMap().get("defaultUseBlacklist"), this.getConfigMap().get("defaultPvpOn")));
-	}
-	
-	public void addToOwnerWBlists(String ownerKey, OwnerWBlists ownerWBlists) {
-		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), ownerWBlists);
-	}
-	
-	public boolean removeFromOwnerWBlists(String ownerKey) {
-		if(ownerWBlistsMap.containsKey(ownerKey.toLowerCase())) {
-			this.ownerWBlistsMap.remove(ownerKey.toLowerCase());
-			return true;
-		}
-		else return false;
-	}
+//	public OwnerWBlists getOwnerWBlists(String ownerKey) {
+//		return ownerWBlistsMap.get(ownerKey.toLowerCase());
+//	}
+//	
+//	public void addToOwnerWBlists(String ownerKey) {
+//		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), new OwnerWBlists(ownerKey, null, null, this.getConfigMap().get("defaultUseBlacklist"), this.getConfigMap().get("defaultPvpOn")));
+//	}
+//	
+//	public void addToOwnerWBlists(String ownerKey, OwnerWBlists ownerWBlists) {
+//		this.ownerWBlistsMap.put(ownerKey.toLowerCase(), ownerWBlists);
+//	}
+//	
+//	public boolean removeFromOwnerWBlists(String ownerKey) {
+//		if(ownerWBlistsMap.containsKey(ownerKey.toLowerCase())) {
+//			this.ownerWBlistsMap.remove(ownerKey.toLowerCase());
+//			return true;
+//		}
+//		else return false;
+//	}
 }
