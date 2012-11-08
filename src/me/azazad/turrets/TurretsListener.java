@@ -9,6 +9,7 @@ import me.azazad.bukkit.util.PlayerCommandSender;
 import net.minecraft.server.EntityMinecart;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -30,6 +31,7 @@ import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
@@ -190,10 +192,10 @@ public class TurretsListener implements Listener{
 	                BlockLocation postLocation = new BlockLocation(clickedBlock.getLocation());
 	                if(plugin.canBuildTurret(postLocation)){
 	                	TurretOwner turretOwner = null;
-	                	if(!plugin.getTurretOwners().containsKey(player)) {
+	                	if(!(plugin.getTurretOwner(player.getName()) == null)) {
 	                		turretOwner = new TurretOwner(plugin, player.getName(), plugin.getMaxTurretsPerPlayer(), new HashSet<String>(), new HashSet<String>(), plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
-	                		plugin.getTurretOwners().put(player.getName(), turretOwner);
-	                	} else turretOwner = plugin.getTurretOwners().get(player);
+	                		plugin.addTurretOwner(player.getName(), turretOwner);
+	                	} else turretOwner = plugin.getTurretOwner(player.getName());
 	                	if((turretOwner.getNumTurretsOwned() < turretOwner.getMaxTurretsAllowed()) || player.hasPermission("turrets.ignoremaxturrets")) {
 	                		Turret turret = new Turret(postLocation,player,plugin,plugin.getConfigMap().get("defaultUseAmmoBox"));
 		                    turretOwner.addTurretOwned(turret);
@@ -214,8 +216,8 @@ public class TurretsListener implements Listener{
     
     @EventHandler(priority = EventPriority.HIGHEST,ignoreCancelled = true)
     public void onPlayerAnimation(PlayerAnimationEvent event) {
-    	if (plugin.getTurret(event.getPlayer())!=null) {//if player is shooter of turret
-			plugin.getTurret(event.getPlayer()).getShooter().setClickedFlag(true);
+    	if (plugin.getShooterTurret(event.getPlayer())!=null) {//if player is shooter of turret
+			plugin.getShooterTurret(event.getPlayer()).getShooter().setClickedFlag(true);
     	}
     }
     
@@ -269,7 +271,7 @@ public class TurretsListener implements Listener{
                         
                         if(player.hasPermission("turrets.destroyturret")) {
 	                        if(player.isOp() || turret.getOwnerName().equals(player.getName()) || plugin.getConfigMap().get("allowAllToDestroy")) {
-		                        TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		                        TurretOwner turretOwner = plugin.getTurretOwner(player.getName());
 		                        turretOwner.removeTurretOwned(turret);
 	                        	plugin.removeTurret(turret);
 		                        plugin.notifyPlayer(player,TurretsMessage.TURRET_DESTROYED);
@@ -288,6 +290,19 @@ public class TurretsListener implements Listener{
         }
     }
     
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+    	if(plugin.isPlayerAShooter(event.getPlayer())) {
+    		Location locFrom = event.getFrom();
+    		Location locTo = event.getTo();
+    		if(locTo.getX()!=locFrom.getX() || locTo.getZ()!=locFrom.getZ()) {
+	    		locTo.setX(locFrom.getX());
+	    		locTo.setZ(locFrom.getZ());
+	    		event.getPlayer().teleport(locTo);
+    		}
+    	}
+    }
+    
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlayerLogin(PlayerLoginEvent event) {
     	if(plugin.getTurretOwner(event.getPlayer())!=null) plugin.getTurretOwner(event.getPlayer()).refreshOnlineStatus();
@@ -301,7 +316,7 @@ public class TurretsListener implements Listener{
     	int viewEndZ = (event.getPlayer().getLocation().getChunk().getZ() + Bukkit.getServer().getViewDistance()) << 4;
     	BlockLocation bloc;
     	for(Turret turret : plugin.getTurrets()) {
-    		bloc = turret.getLocation();
+    		bloc = turret.getBlockLocation();
     		if ((bloc.getX()>=viewStartX && bloc.getX()<viewEndX) && (bloc.getZ()>=viewStartZ && bloc.getZ()<viewEndZ)) {
     			plugin.respawnTurret(bloc);
     		}
@@ -438,8 +453,8 @@ public class TurretsListener implements Listener{
     
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-    	if(plugin.getTurret(event.getEntity())!=null) {
-    		Turret turret = plugin.getTurret(event.getEntity());
+    	if(plugin.getShooterTurret(event.getEntity())!=null) {
+    		Turret turret = plugin.getShooterTurret(event.getEntity());
     		turret.detachShooter();
     	}
     }

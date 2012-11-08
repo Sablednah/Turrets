@@ -86,10 +86,10 @@ public class YAMLTurretDatabase implements TurretDatabase{
         ConfigurationSection turretSections = backing.createSection(TURRETS_PATH);
         int id = 0;
         for(Turret turret : turrets){
-        	TurretOwner turretOwner = plugin.getTurretOwners().get(Bukkit.getPlayer(turret.getOwnerName()));
+        	TurretOwner turretOwner = plugin.getTurretOwner(Bukkit.getPlayer(turret.getOwnerName()));
             if(turretOwner!=null) turretOwner.removeTurretOwned(turret);
             ConfigurationSection turretSection = turretSections.createSection("t"+id);
-            turret.getLocation().saveToConfigSection(turretSection,LOCATION_PATH);
+            turret.getBlockLocation().saveToConfigSection(turretSection,LOCATION_PATH);
             turretSection.set(OWNER_PATH,turret.getOwnerName());
             turretSection.set(USES_AMMO_PATH, turret.getUsesAmmoBox());
 	        if (turret.getTurretAmmoBox().getAmmoChestNum() > 0) {

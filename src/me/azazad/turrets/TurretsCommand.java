@@ -60,16 +60,16 @@ public class TurretsCommand implements CommandExecutor{
 		            		String subcommand1 = args[1].toLowerCase();
 		            		String subcommand2 = args[2].toLowerCase();
 		            		if (subcommand1.equals("unlimited") && subcommand2.equals("all")) {
-		            			if(plugin.getTurretOwners().get(player)!=null) {
-		            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		            			if(plugin.getTurretOwner(player.getName())!=null) {
+		            				TurretOwner turretOwner = plugin.getTurretOwner(player.getName());
 		            				for(Turret turret : turretOwner.getTurretsOwned()) {
 		            					turret.setUsesAmmoBox(false);
 		            				}
 		            				player.sendMessage("All turrets set to unlimited ammo.");
 		            			} else player.sendMessage("You have no turrets!");
 		            		} else if (subcommand1.equals("useammobox") && subcommand2.equals("all")) {
-		            			if(plugin.getTurretOwners().get(player)!=null) {
-		            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+		            			if(plugin.getTurretOwner(player.getName())!=null) {
+		            				TurretOwner turretOwner = plugin.getTurretOwner(player.getName());
 		            				for(Turret turret : turretOwner.getTurretsOwned()) {
 		            					turret.setUsesAmmoBox(true);
 		            				}
@@ -213,8 +213,8 @@ public class TurretsCommand implements CommandExecutor{
 		            		if(matToUse!=null && plugin.getUnlimitedAmmoTypes().contains(matToUse)) {
 			            		String subcommand2 = args[2].toLowerCase();
 			            		if (subcommand2.equals("all")) {
-			            			if(plugin.getTurretOwners().get(player)!=null) {
-			            				TurretOwner turretOwner = plugin.getTurretOwners().get(player);
+			            			if(plugin.getTurretOwner(player.getName())!=null) {
+			            				TurretOwner turretOwner = plugin.getTurretOwner(player.getName());
 			            				for(Turret turret : turretOwner.getTurretsOwned()) {
 			            					if(!turret.getUsesAmmoBox()) turret.setUnlimitedAmmoType(matToUse);
 			            				}
@@ -289,7 +289,7 @@ public class TurretsCommand implements CommandExecutor{
         				TurretOwner turretOwner = plugin.getTurretOwner(playerWLowner);
         				if(turretOwner==null) {
         					turretOwner = new TurretOwner(plugin, playerWLowner, plugin.getMaxTurretsPerPlayer(), new HashSet<String>(), new HashSet<String>(), plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
-        					plugin.getTurretOwners().put(playerWLowner, turretOwner);
+        					plugin.addTurretOwner(playerWLowner, turretOwner);
         				}
 	        			if(args[2].equalsIgnoreCase("add")) {
 	        				if(!turretOwner.isPlayerInWhitelist(args[3])) {
@@ -332,7 +332,7 @@ public class TurretsCommand implements CommandExecutor{
         				TurretOwner turretOwner = plugin.getTurretOwner(playerBLowner);
         				if(turretOwner==null) {
         					turretOwner = new TurretOwner(plugin, playerBLowner, plugin.getMaxTurretsPerPlayer(), new HashSet<String>(), new HashSet<String>(), plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
-        					plugin.getTurretOwners().put(playerBLowner, turretOwner);
+        					plugin.addTurretOwner(playerBLowner, turretOwner);
         				}
 	        			if(args[2].equalsIgnoreCase("add")) {
 	        				if(!turretOwner.isPlayerInBlacklist(args[3])) {
@@ -407,7 +407,7 @@ public class TurretsCommand implements CommandExecutor{
 	        					if(turretOwnerFrom!=null) {
 		        					if(turretOwnerTo==null) {
 		        						turretOwnerTo = new TurretOwner(plugin, userTo, plugin.getMaxTurretsPerPlayer(), new HashSet<String>(), new HashSet<String>(), plugin.getConfigMap().get("defaultUseBlacklist"), plugin.getConfigMap().get("defaultPvpOn"));
-		        						plugin.getTurretOwners().put(userTo, turretOwnerTo);
+		        						plugin.addTurretOwner(userTo, turretOwnerTo);
 		        					}
 		        					turretOwnerTo.copyWhitelist(turretOwnerFrom.getWhitelist());
 		        					turretOwnerTo.copyBlacklist(turretOwnerFrom.getBlacklist());

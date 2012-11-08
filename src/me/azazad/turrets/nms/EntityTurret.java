@@ -7,6 +7,7 @@ import java.util.List;
 import me.azazad.turrets.Turret;
 import me.azazad.turrets.TurretAmmoBox;
 import me.azazad.turrets.TurretOwner;
+import me.azazad.turrets.TurretShooter;
 import me.azazad.turrets.targeting.TargetAssessment;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
@@ -14,6 +15,7 @@ import me.azazad.util.RandomUtils;
 import net.minecraft.server.DamageSource;
 import net.minecraft.server.EntityArrow;
 import net.minecraft.server.EntityEgg;
+import net.minecraft.server.EntityHuman;
 import net.minecraft.server.EntityItem;
 import net.minecraft.server.EntityPotion;
 import net.minecraft.server.EntitySmallFireball;
@@ -23,6 +25,8 @@ import net.minecraft.server.ItemMonsterEgg;
 import net.minecraft.server.ItemPotion;
 import net.minecraft.server.Vec3D;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Chest;
@@ -51,6 +55,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     
     //private int firingInterval = 40;
     private int targetSearchInterval = 10;
+	private int turretLookMatchShooterCD = 0;
     //private double range = 10.0;
     //private float accuracy = 1.0f;//default 6.0f
     
@@ -119,9 +124,10 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         double range = upgradeTier.getRange();
         float accuracy = upgradeTier.getAccuracy();
         boolean lockedOn = false;
+        if(this.getTurret().getShooter()!=null && this.getTurret().getShooter().getPlayer()==null) this.getTurret().detachShooter();
         if(this.getTurret().getIsActive()) {
-	        //if(!getPlayerControl()) {
-        	if(true) {
+	        if(!this.getTurret().getPlayerControl()) {
+//        	if(true) {
 	        	//If not currently targeting an entity, find a suitable one
         		if(target != null) {
         			if(targetSearchCooldown == 0) {
@@ -183,22 +189,22 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 		            }
 		        }
 	        }
-//	        else {
-//	        	if(turretLookMatchShooterCD == 0) {
-//		        	double dist = 4.0;
-//		        	Location ploc = this.getShooter().getPlayer().getEyeLocation();
-//		        	float plocPitch = ploc.getPitch();
-//		        	float plocYaw = ploc.getYaw();
-//		        	double yawInRad = ((double)plocYaw)*Math.PI/180;
-//		        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
-//		        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
-//		        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
-//		        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
-//		        	//Bukkit.broadcastMessage("x= " + plookX + ", y=" + plookY + ", z=" + plookZ);
-//		        	lookAt(plookX,plookY,plookZ);
-//		        	turretLookMatchShooterCD = 10;
-//	        	} else turretLookMatchShooterCD--;
-//	        }
+	        else {
+	        	if(turretLookMatchShooterCD  == 0) {
+		        	double dist = 4.0;
+		        	Location ploc = this.getTurret().getShooter().getPlayer().getEyeLocation();
+		        	float plocPitch = ploc.getPitch();
+		        	float plocYaw = ploc.getYaw();
+		        	double yawInRad = ((double)plocYaw)*Math.PI/180;
+		        	double pitchP90inRad = ((double)plocPitch+90)*Math.PI/180;
+		        	double plookX = ploc.getX() + dist*Math.sin((double)(-yawInRad+2*Math.PI))*Math.sin(pitchP90inRad);
+		        	double plookY = ploc.getY() + dist*Math.cos(pitchP90inRad);
+		        	double plookZ = ploc.getZ() + dist*Math.cos(yawInRad)*Math.sin(pitchP90inRad);
+		        	//Bukkit.broadcastMessage("x = " + plookX + ", y = " + plookY + ", z = " + plookZ);
+		        	lookAt(plookX,plookY,plookZ);
+		        	turretLookMatchShooterCD = 0;
+	        	} else turretLookMatchShooterCD--;
+	        }
 	        
 	        
 	        this.b(this.yaw,this.pitch);
@@ -233,10 +239,48 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         }*/
     }
     
-    public void lookAt(double x,double y,double z){
-        double dx = x - this.locX;
+    @Override
+    public boolean c(EntityHuman entityhuman) {
+    	if (this.type == 0) {
+            if (this.passenger != null && this.passenger instanceof EntityHuman && this.passenger != entityhuman) {
+                return true;
+            }
+
+            if (!this.world.isStatic) {
+            	if(entityhuman.getBukkitEntity() instanceof Player) {
+            		Player player = (Player)entityhuman.getBukkitEntity();
+            		if(player.hasPermission("turrets.manturret")) {
+            			if(this.getTurret().getOwnerName().equals(player.getName()) || player.isOp() || (this.getTurret().getPlugin().getConfigMap().get("allowAllToMan") && ((this.getTurret().getTurretOwner().isUsingBlacklist() && !this.getTurret().getTurretOwner().isPlayerInBlacklist(player.getName())) || (!this.getTurret().getTurretOwner().isUsingBlacklist() && this.getTurret().getTurretOwner().isPlayerInWhitelist(player.getName()))))) {
+            				if(this.getTurret().getPlugin().isPlayerAShooter(player) && !this.getTurret().getPlugin().getShooterTurret(player).equals(this.getTurret())) {
+		            			this.getTurret().getPlugin().getShooterTurret(player).detachShooter();
+		            			(player).sendMessage("Dismounted turret!");
+		            		}
+		            		else if(!this.getTurret().getPlayerControl()) {
+			            		TurretShooter shooter = new TurretShooter(player);
+			            		this.getTurret().attachShooter(shooter);
+			            		Location entityTurretLoc = this.getTurret().getBlockLocation().getLocation();
+			            		entityTurretLoc.setX(entityTurretLoc.getX()+.5);
+			            		entityTurretLoc.setY(entityTurretLoc.getY()+1.5);
+			            		entityTurretLoc.setZ(entityTurretLoc.getZ()+.5);
+			            		shooter.getPlayer().teleport(entityTurretLoc);
+			            		player.sendMessage("Mounted turret!");
+			            	}
+			            	else {
+			            		this.getTurret().detachShooter();
+			            		player.sendMessage("Dismounted turret!");
+			            	}
+            			}
+            		} else player.sendMessage(ChatColor.RED + "You don't have permission to man turrets!");
+            	}
+            }
+        }
+    	return true;
+    }
+
+	public void lookAt(double x,double y,double z){
+        double dx = -(x - this.locX);
         double dy = y - this.locY;
-        double dz = z - this.locZ;
+        double dz = -(z - this.locZ);
         double dh = Math.sqrt(dx * dx + dz * dz);
         this.yaw = ((float)Math.atan2(dz,dx) * 180F / (float)Math.PI);
         this.pitch = ((float)-Math.atan(dy / dh) * 180F / (float)Math.PI);
@@ -353,7 +397,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     						matToUse = material;
     						break;
     					}
-    				}//NOW THE ONLY THING THAT DOESN'T WORK IS OTHER ITEMS BEING FIRED OTHER THAN AN ARROW
+    				}
     				if (matToUse!=null) {
     					ItemStack[] chestInv = chest.getInventory().getContents();
     					for (ItemStack item : chestInv) {
@@ -381,14 +425,19 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         if(itemStack != null){
             double rYaw = (yaw - 90.0) * Math.PI / 180.0;
             double rPitch = pitch * Math.PI / 180.0;
-            
             double factorX = Math.sin(rYaw) * -Math.cos(rPitch);
             double factorY = -Math.sin(rPitch);
             double factorZ = Math.cos(rYaw) * Math.cos(rPitch);
             
-            double itemX = this.locX + ITEM_SPAWN_DISTANCE * factorX;
+//TODO: testing shooting stuff
+//            double itemX = this.locX + ITEM_SPAWN_DISTANCE * factorX;
+//            double itemY = this.locY + ITEM_SPAWN_DISTANCE * factorY;
+//            double itemZ = this.locZ + ITEM_SPAWN_DISTANCE * factorZ;
+            double itemX = this.locX - ITEM_SPAWN_DISTANCE * factorX;
             double itemY = this.locY + ITEM_SPAWN_DISTANCE * factorY;
-            double itemZ = this.locZ + ITEM_SPAWN_DISTANCE * factorZ;
+            double itemZ = this.locZ - ITEM_SPAWN_DISTANCE * factorZ;
+            factorX = -factorX;
+            factorZ = -factorZ;
             
             switch(itemStack.getType()){
                 case ARROW:

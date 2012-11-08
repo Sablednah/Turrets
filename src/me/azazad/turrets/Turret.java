@@ -6,7 +6,6 @@ import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -34,7 +33,7 @@ public class Turret{
     public Turret(BlockLocation location,String ownerName,TurretsPlugin plugin,boolean useAmmoBox){
         this.location = location;
         this.ownerName = ownerName;
-        this.turretOwner = plugin.getTurretOwners().get(Bukkit.getOfflinePlayer(ownerName));
+        this.turretOwner = plugin.getTurretOwner(ownerName);
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
         this.usesAmmoBox = useAmmoBox;
@@ -42,7 +41,7 @@ public class Turret{
         initializeUpgradeTier();
     }
     
-    public BlockLocation getLocation(){
+    public BlockLocation getBlockLocation(){
         return location;
     }
     
@@ -134,9 +133,9 @@ public class Turret{
     }
 
 	public boolean checkIfBlockByTurret(Block clickedBlock) {
-		int turretBlockX = this.getLocation().getX();
-		int turretBlockY = this.getLocation().getY();
-		int turretBlockZ = this.getLocation().getZ();
+		int turretBlockX = this.getBlockLocation().getX();
+		int turretBlockY = this.getBlockLocation().getY();
+		int turretBlockZ = this.getBlockLocation().getZ();
 		int clickedBlockX = clickedBlock.getX();
 		int clickedBlockY = clickedBlock.getY();
 		int clickedBlockZ = clickedBlock.getZ();

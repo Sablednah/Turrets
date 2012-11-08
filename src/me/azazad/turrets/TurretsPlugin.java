@@ -212,7 +212,7 @@ public class TurretsPlugin extends JavaPlugin{
         return turrets.get(postLocation);
     }
     
-    public Turret getTurret(Player p) {
+    public Turret getShooterTurret(Player p) {
     	Turret turret = null;
     	for (Turret cur_turr : turrets.values()) {
     		if (cur_turr.getShooter()!=null) {
@@ -238,11 +238,11 @@ public class TurretsPlugin extends JavaPlugin{
     }
     
     public boolean isPlayerAShooter(Player p) {
-    	return(getTurret(p)!=null);
+    	return(getShooterTurret(p)!=null);
     }
     
     public void addTurret(Turret turret){
-        BlockLocation location = turret.getLocation();
+        BlockLocation location = turret.getBlockLocation();
         
         if(!turrets.containsKey(location)){
             turrets.put(location,turret);
@@ -252,7 +252,7 @@ public class TurretsPlugin extends JavaPlugin{
     
     public void removeTurret(Turret turret){
         turret.despawn();
-        turrets.remove(turret.getLocation());
+        turrets.remove(turret.getBlockLocation());
     }
     
     public boolean canBuildTurret(BlockLocation location){
@@ -272,8 +272,8 @@ public class TurretsPlugin extends JavaPlugin{
         }
         
         for(Turret turret : dbTurrets){
-            if(!turrets.containsKey(turret.getLocation())) {
-                turrets.put(turret.getLocation(),turret);
+            if(!turrets.containsKey(turret.getBlockLocation())) {
+                turrets.put(turret.getBlockLocation(),turret);
                 turret.spawn();
             }
         }
@@ -354,8 +354,8 @@ public class TurretsPlugin extends JavaPlugin{
 		this.maxTurretsPerPlayer = maxTurretsPerPlayer;
 	}
 	
-	public Map<String,TurretOwner> getTurretOwners() {
-		return this.turretOwners;
+	public void addTurretOwner(String ownerName, TurretOwner turretOwner) {
+		this.turretOwners.put(ownerName, turretOwner);
 	}
 	
 	public TurretOwner getTurretOwner(String ownerName) {
@@ -369,7 +369,9 @@ public class TurretsPlugin extends JavaPlugin{
 	public TurretOwner getTurretOwner(Player player) {
 		TurretOwner ownerReturn = null;
 		for(TurretOwner turretOwner : this.turretOwners.values()) {
-			if(turretOwner.getOfflinePlayer().getPlayer().equals(player)) ownerReturn = turretOwner;
+			if(turretOwner.getOfflinePlayer().getPlayer()!=null) {
+				if(turretOwner.getOfflinePlayer().getPlayer().equals(player)) ownerReturn = turretOwner;
+			}
 		}
 		return ownerReturn;
 	}
