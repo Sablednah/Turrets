@@ -1,7 +1,7 @@
 # General Plugin Information
 name: Turrets
 main: me.azazad.turrets.TurretsPlugin
-version: 0.2.3
+version: 0.2.3a
 author: wristdirect
 database: false
 

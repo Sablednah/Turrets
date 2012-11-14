@@ -7,7 +7,6 @@ import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.bukkit.util.PlayerCommandSender;
 import net.minecraft.server.EntityMinecart;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -310,17 +309,17 @@ public class TurretsListener implements Listener{
     
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
-    	int viewStartX = (event.getPlayer().getLocation().getChunk().getX() - Bukkit.getServer().getViewDistance()) << 4;
-    	int viewStartZ = (event.getPlayer().getLocation().getChunk().getZ() - Bukkit.getServer().getViewDistance()) << 4;
-    	int viewEndX = (event.getPlayer().getLocation().getChunk().getX() + Bukkit.getServer().getViewDistance()) << 4;
-    	int viewEndZ = (event.getPlayer().getLocation().getChunk().getZ() + Bukkit.getServer().getViewDistance()) << 4;
-    	BlockLocation bloc;
-    	for(Turret turret : plugin.getTurrets()) {
-    		bloc = turret.getBlockLocation();
-    		if ((bloc.getX()>=viewStartX && bloc.getX()<viewEndX) && (bloc.getZ()>=viewStartZ && bloc.getZ()<viewEndZ)) {
-    			plugin.respawnTurret(bloc);
-    		}
-    	}
+//    	int viewStartX = (event.getPlayer().getLocation().getChunk().getX() - Bukkit.getServer().getViewDistance()) << 4;
+//    	int viewStartZ = (event.getPlayer().getLocation().getChunk().getZ() - Bukkit.getServer().getViewDistance()) << 4;
+//    	int viewEndX = (event.getPlayer().getLocation().getChunk().getX() + Bukkit.getServer().getViewDistance()) << 4;
+//    	int viewEndZ = (event.getPlayer().getLocation().getChunk().getZ() + Bukkit.getServer().getViewDistance()) << 4;
+//    	BlockLocation bloc;
+//    	for(Turret turret : plugin.getTurrets()) {
+//    		bloc = turret.getBlockLocation();
+//    		if ((bloc.getX()>=viewStartX && bloc.getX()<viewEndX) && (bloc.getZ()>=viewStartZ && bloc.getZ()<viewEndZ)) {
+//    			plugin.respawnTurret(bloc);
+//    		}
+//    	}
     }
     
     @EventHandler
