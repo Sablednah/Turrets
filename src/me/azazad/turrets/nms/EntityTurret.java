@@ -32,6 +32,7 @@ import org.bukkit.World;
 import org.bukkit.block.Chest;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEntity;
+import org.bukkit.craftbukkit.entity.CraftLivingEntity;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -41,13 +42,13 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
 
+@SuppressWarnings("unused")
 public class EntityTurret extends net.minecraft.server.EntityMinecart{
     private static final double REBOUND = 0.1;
     private static final double ITEM_SPAWN_DISTANCE = 1.2;
     
     private final Turret turret;
-    @SuppressWarnings("unused")
-	private final World bukkitWorld;
+    private final World bukkitWorld;
     private final double pivotX,pivotY,pivotZ;
     private Entity target;
     private int firingCooldown = 0;
@@ -135,7 +136,8 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
 	        				List<LivingEntity> curTarget = new ArrayList<LivingEntity>();
 	        				curTarget.add((LivingEntity)target);
 	        				filterTargets(curTarget);
-	        				target = curTarget.get(0);
+	        				if (curTarget.size()>0) target = curTarget.get(0);
+	        				else target=null;
         				}
         			}
         		}
@@ -328,10 +330,9 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
         
         return null;
     }
-    
-    private void filterTargets(List<LivingEntity> targets){
+    private void filterTargets(List<LivingEntity> targets) {
         Iterator<LivingEntity> it = targets.iterator();
-        while(it.hasNext()){
+        while(it.hasNext()) {
             LivingEntity mob = it.next();
             TargetAssessment assessment = assessTarget(mob);
             if(assessment == TargetAssessment.EITHER) {
@@ -341,7 +342,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             		TurretOwner turretOwner = this.getTurret().getTurretOwner();
             		if(turretOwner.isPvpEnabled()) {
             			if(turretOwner.isUsingBlacklist()) {
-            				if(turretOwner.isPlayerInBlacklist(playerTarget.getName().toLowerCase())){
+            				if(turretOwner.isPlayerInBlacklist(playerTarget.getName().toLowerCase())) {
             					if(this.getTurret().getPlugin().globalWhitelist.contains(playerTarget.getName().toLowerCase())) {
             						isHostileTarget = false;
             					}
@@ -428,11 +429,6 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             double factorX = Math.sin(rYaw) * -Math.cos(rPitch);
             double factorY = -Math.sin(rPitch);
             double factorZ = Math.cos(rYaw) * Math.cos(rPitch);
-            
-//TODO: testing shooting stuff
-//            double itemX = this.locX + ITEM_SPAWN_DISTANCE * factorX;
-//            double itemY = this.locY + ITEM_SPAWN_DISTANCE * factorY;
-//            double itemZ = this.locZ + ITEM_SPAWN_DISTANCE * factorZ;
             double itemX = this.locX - ITEM_SPAWN_DISTANCE * factorX;
             double itemY = this.locY + ITEM_SPAWN_DISTANCE * factorY;
             double itemZ = this.locZ - ITEM_SPAWN_DISTANCE * factorZ;
@@ -441,12 +437,16 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
             
             switch(itemStack.getType()){
                 case ARROW:
-                    EntityArrow entityArrow = new EntityArrow(world,itemX,itemY,itemZ);
+                	//TODO:homing arrow stuff location is here!
+                	EntityArrow entityArrow = new EntityArrow(world,itemX,itemY,itemZ);
+                	//EntityHomingArrow entityArrow = new EntityHomingArrow(world,itemX,itemY,itemZ);
                     if(this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().getConfigMap().get("pickupAmmoArrows"))
                     	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
                     if(!this.getTurret().getUsesAmmoBox() && !this.getTurret().getPlugin().getConfigMap().get("pickupUnlimArrows"))
                     	entityArrow.getBukkitEntity().setMetadata("no_pickup", new FixedMetadataValue(this.getTurret().getPlugin(), true));
                     entityArrow.shoot(factorX,factorY,factorZ,1.1f,accuracy);
+                    //entityArrow.shoot( ((CraftLivingEntity)((LivingEntity)target)).getHandle(), 1.1f);
+                    //entityArrow.setTarget(((CraftLivingEntity)((LivingEntity)target)).getHandle());
                     entityArrow.fromPlayer = 1;
                     world.addEntity(entityArrow);
                     world.triggerEffect(1002,blockX,blockY,blockZ,0);

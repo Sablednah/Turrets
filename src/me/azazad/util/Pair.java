@@ -4,7 +4,7 @@ public class Pair<A, B> {
     A first = null;
     B second = null;
 
-    Pair(A first, B second) {
+    public Pair(A first, B second) {
         this.first = first;
         this.second = second;
     }
