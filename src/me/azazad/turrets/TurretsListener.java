@@ -2,7 +2,7 @@ package me.azazad.turrets;
 
 import java.util.HashSet;
 
-import me.azazad.turrets.nms.EntityTurret;
+import me.azazad.turrets.nms.EntityRotatingTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.bukkit.util.PlayerCommandSender;
@@ -257,9 +257,9 @@ public class TurretsListener implements Listener{
         if(entity instanceof Minecart){
             Minecart minecart = (Minecart)entity;
             EntityMinecart nmsMinecart = ((CraftMinecart)minecart).getHandle();
-            if(nmsMinecart instanceof EntityTurret){
+            if(nmsMinecart instanceof EntityRotatingTurret){
             
-                EntityTurret nmsTurret = (EntityTurret)nmsMinecart;
+                EntityRotatingTurret nmsTurret = (EntityRotatingTurret)nmsMinecart;
                 Turret turret = nmsTurret.getTurret();
                 
                 if(plugin.getTurrets().contains(turret)){
@@ -334,8 +334,8 @@ public class TurretsListener implements Listener{
     	if(entity instanceof Minecart) {
     		Minecart minecart = (Minecart)entity;
     		EntityMinecart nmsMinecart = ((CraftMinecart)minecart).getHandle();
-    		if(nmsMinecart instanceof EntityTurret) {
-    			EntityTurret nmsTurret = (EntityTurret)nmsMinecart;
+    		if(nmsMinecart instanceof EntityRotatingTurret) {
+    			EntityRotatingTurret nmsTurret = (EntityRotatingTurret)nmsMinecart;
     			Turret turret = nmsTurret.getTurret();
     			if(plugin.getTurrets().contains(turret)) {
     				event.setCancelled(true);

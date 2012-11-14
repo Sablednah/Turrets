@@ -1,7 +1,7 @@
 package me.azazad.turrets;
 
 import java.util.List;
-import me.azazad.turrets.nms.EntityTurret;
+import me.azazad.turrets.nms.EntityRotatingTurret;
 import me.azazad.turrets.targeting.TargetAssessor;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
@@ -17,7 +17,7 @@ public class Turret{
     private final BlockLocation location;
     private String ownerName;
     private final TurretsPlugin plugin;
-    private EntityTurret entity;
+    private EntityRotatingTurret entity;
     private UpgradeTier upgradeTier;
     private TurretAmmoBox turretAmmoBox;
     private boolean playerControl = false;
@@ -37,7 +37,7 @@ public class Turret{
         this.plugin = plugin;
         this.turretAmmoBox = new TurretAmmoBox();
         this.usesAmmoBox = useAmmoBox;
-        this.entity = new EntityTurret(this,location.getWorld(),location.getX() + 0.5,location.getY() + 1.3,location.getZ() + 0.5);
+        this.entity = new EntityRotatingTurret(this,location.getWorld(),location.getX() + 0.5,location.getY() + 1.3,location.getZ() + 0.5);
         initializeUpgradeTier();
     }
     
@@ -49,7 +49,7 @@ public class Turret{
         return ownerName;
     }
     
-    public EntityTurret getEntity(){
+    public EntityRotatingTurret getEntity() {
         return entity;
     }
     

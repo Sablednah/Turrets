@@ -43,7 +43,7 @@ import org.bukkit.potion.Potion;
 import org.bukkit.util.NumberConversions;
 
 @SuppressWarnings("unused")
-public class EntityTurret extends net.minecraft.server.EntityMinecart{
+public class EntityRotatingTurret extends net.minecraft.server.EntityMinecart{
     private static final double REBOUND = 0.1;
     private static final double ITEM_SPAWN_DISTANCE = 1.2;
     
@@ -60,7 +60,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     //private double range = 10.0;
     //private float accuracy = 1.0f;//default 6.0f
     
-    public EntityTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
+    public EntityRotatingTurret(Turret turret,World world,double pivotX,double pivotY,double pivotZ){
         super(((CraftWorld)world).getHandle());
         this.turret = turret;
         this.getTurret().setIsActive(this.turret.getPlugin().getConfigMap().get("activeOnCreate"));
@@ -242,7 +242,7 @@ public class EntityTurret extends net.minecraft.server.EntityMinecart{
     }
     
     @Override
-    public boolean c(EntityHuman entityhuman) {
+    public boolean a(EntityHuman entityhuman) {
     	if (this.type == 0) {
             if (this.passenger != null && this.passenger instanceof EntityHuman && this.passenger != entityhuman) {
                 return true;
