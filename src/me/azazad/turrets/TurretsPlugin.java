@@ -53,7 +53,7 @@ public class TurretsPlugin extends JavaPlugin{
     private static File oldTurretOwnersFile = null;
     public static final List<Material> POST_MATERIALS = new ArrayList<Material>();
     public List<PlayerCommandSender> playerCommanders = new ArrayList<PlayerCommandSender>();
-    
+
     public Set<String> globalWhitelist;
     
     public static Logger globalLogger;
@@ -70,6 +70,8 @@ public class TurretsPlugin extends JavaPlugin{
     private final Collection<Turret> unmodifiableTurrets = Collections.unmodifiableCollection(turrets.values());
     private int maxTurretsPerPlayer;
     
+    public static Boolean hasFactions = false;
+
     
     public TurretsPlugin(){
         targetAssessors.add(new MobAssessor());
@@ -118,7 +120,12 @@ public class TurretsPlugin extends JavaPlugin{
         POST_MATERIALS.add(Material.IRON_FENCE);
         POST_MATERIALS.add(Material.NETHER_FENCE);
         POST_MATERIALS.add(Material.COBBLE_WALL);
-        
+		
+        //check for factions
+        hasFactions = this.getServer().getPluginManager().isPluginEnabled("Factions");
+		if (hasFactions) {
+			logger.info("Factions Support Enabled");
+		}
         
         //load turrets
         try{
@@ -557,6 +564,11 @@ public class TurretsPlugin extends JavaPlugin{
 			config.set("maxTurretsPerPlayer", 12);
 			logger.warning("Couldn't find maxTurretsPerPlayer. Setting to default: 12");
 		}
+    }
+	
+	//check for factions
+    public static boolean hasFactions() {
+    	return hasFactions;
     }
 	
 //	public OwnerWBlists getOwnerWBlists(String ownerKey) {

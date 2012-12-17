@@ -1,9 +1,10 @@
 # General Plugin Information
 name: Turrets
 main: me.azazad.turrets.TurretsPlugin
-version: 0.2.3a
+version: 0.2.4
 author: wristdirect
 database: false
+softdepend: [ Factions ]
 
 # Commands
 commands:
