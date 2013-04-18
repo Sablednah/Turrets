@@ -1,10 +1,10 @@
 package me.azazad.turrets.nms;
 
-import net.minecraft.server.Entity;
-import net.minecraft.server.EntityArrow;
-import net.minecraft.server.EntityLiving;
-import net.minecraft.server.MathHelper;
-import net.minecraft.server.World;
+import net.minecraft.server.v1_5_R2.Entity;
+import net.minecraft.server.v1_5_R2.EntityArrow;
+import net.minecraft.server.v1_5_R2.EntityLiving;
+import net.minecraft.server.v1_5_R2.MathHelper;
+import net.minecraft.server.v1_5_R2.World;
 
 public class EntityHomingArrow extends EntityArrow{
 	
@@ -80,8 +80,8 @@ public class EntityHomingArrow extends EntityArrow{
     }
 	
     @Override
-    public void j_() {
-        super.j_();
+    public void l_() {
+        super.l_();
         if(this.target!=null) this.updateHomingMotion();
     }
 }

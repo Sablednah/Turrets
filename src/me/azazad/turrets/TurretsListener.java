@@ -6,14 +6,16 @@ import me.azazad.turrets.nms.EntityRotatingTurret;
 import me.azazad.turrets.upgrade.UpgradeTier;
 import me.azazad.bukkit.util.BlockLocation;
 import me.azazad.bukkit.util.PlayerCommandSender;
-import net.minecraft.server.EntityMinecart;
+import net.minecraft.server.v1_5_R2.EntityMinecartAbstract;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
-import org.bukkit.craftbukkit.entity.CraftMinecart;
+import org.bukkit.craftbukkit.v1_5_R2.entity.CraftMinecart;
+import org.bukkit.craftbukkit.v1_5_R2.entity.CraftMinecartRideable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Minecart;
@@ -266,7 +268,7 @@ public class TurretsListener implements Listener {
 		// Turret destruction
 		if (entity instanceof Minecart) {
 			Minecart minecart = (Minecart) entity;
-			EntityMinecart nmsMinecart = ((CraftMinecart) minecart).getHandle();
+			EntityMinecartAbstract nmsMinecart = ((CraftMinecartRideable) minecart).getHandle();
 			if (nmsMinecart instanceof EntityRotatingTurret) {
 
 				EntityRotatingTurret nmsTurret = (EntityRotatingTurret) nmsMinecart;
@@ -349,7 +351,7 @@ public class TurretsListener implements Listener {
 		Entity entity = event.getEntity();
 		if (entity instanceof Minecart) {
 			Minecart minecart = (Minecart) entity;
-			EntityMinecart nmsMinecart = ((CraftMinecart) minecart).getHandle();
+			EntityMinecartAbstract nmsMinecart = ((CraftMinecart) minecart).getHandle();
 			if (nmsMinecart instanceof EntityRotatingTurret) {
 				EntityRotatingTurret nmsTurret = (EntityRotatingTurret) nmsMinecart;
 				Turret turret = nmsTurret.getTurret();
